@@ -2,9 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'models.dart';
 import 'providers.dart';
@@ -125,7 +123,7 @@ class HomeScreen extends StatelessWidget {
           return [
             SliverAppBar(
               title: const Header(),
-              expandedHeight: 120,
+              expandedHeight: 80,
               floating: true,
               pinned: true,
               flexibleSpace: FlexibleSpaceBar(
@@ -185,60 +183,8 @@ class HeaderState extends State<Header> {
     super.dispose();
   }
 
-  void _launchEmail() async {
-    final history = Provider.of<HistoryModel>(context, listen: false);
-    final baby = Provider.of<BabyModel>(context, listen: false);
-    final subject = 'Breastfeeding History for ${baby.babyName}';
-    final body = history.sessions.map((session) {
-      final startTime = DateFormat.yMd().add_Hms().format(session.startTime);
-      final duration = session.duration.inMinutes;
-      final side = session.breastSide == BreastSide.left ? 'Left' : 'Right';
-      return 'Start Time: $startTime, Duration: $duration minutes, Side: $side';
-    }).join('\n');
-
-    final Uri emailLaunchUri = Uri(
-      scheme: 'mailto',
-      path: '',
-      query: 'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
-    );
-
-    try {
-      await launchUrl(emailLaunchUri);
-    } catch (e) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Email Content'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Subject:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(subject),
-                const SizedBox(height: 10),
-                const Text('Body:', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(body),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: 'Subject: $subject\n\n$body'));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Email content copied to clipboard')),
-                );
-              },
-              child: const Text('Copy'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
-        ),
-      );
-    }
+  void _shareApp() {
+    Share.share('Check out this awesome breastfeeding timer app!\n\n[App URL goes here]');
   }
 
   @override
@@ -285,7 +231,7 @@ class HeaderState extends State<Header> {
             ),
             IconButton(
               icon: const Icon(Icons.share),
-              onPressed: _launchEmail,
+              onPressed: _shareApp,
             ),
             IconButton(
               icon: const Icon(Icons.settings),
