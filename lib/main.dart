@@ -203,7 +203,7 @@ class HeaderState extends State<Header> {
   }
 
   void _shareApp() {
-    Share.share('Check out this awesome breastfeeding timer app!\n\n[App URL goes here]');
+    Share.share(text: 'Check out this awesome breastfeeding timer app!\n\n[App URL goes here]');
   }
 
   @override
