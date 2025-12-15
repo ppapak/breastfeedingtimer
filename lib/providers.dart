@@ -75,8 +75,12 @@ class HistoryModel with ChangeNotifier {
   }
 
   // Analysis Getters
-  Duration get timeSinceLastFeed =>
-      _sessions.isNotEmpty ? DateTime.now().difference(_sessions.first.startTime) : Duration.zero;
+  Duration get timeSinceLastFeed {
+    if (_sessions.isEmpty) {
+      return Duration.zero;
+    }
+    return DateTime.now().difference(_sessions.first.startTime);
+  }
 
   int get feedsInLast24Hours =>
       _sessions.where((s) => DateTime.now().difference(s.startTime).inHours < 24).length;

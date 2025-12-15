@@ -169,17 +169,36 @@ class Header extends StatefulWidget {
 class HeaderState extends State<Header> {
   bool _isEditing = false;
   late TextEditingController _nameController;
+  late FocusNode _focusNode;
+  String _originalName = '';
 
   @override
   void initState() {
     super.initState();
     final babyModel = Provider.of<BabyModel>(context, listen: false);
     _nameController = TextEditingController(text: babyModel.babyName);
+    _focusNode = FocusNode();
+
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus && _isEditing) {
+        final newName = _nameController.text.trim();
+        if (newName.isNotEmpty) {
+          babyModel.setBabyName(newName);
+        } else {
+          _nameController.text = _originalName;
+          babyModel.setBabyName(_originalName);
+        }
+        setState(() {
+          _isEditing = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -200,16 +219,16 @@ class HeaderState extends State<Header> {
                 width: 150,
                 child: TextField(
                   controller: _nameController,
+                  focusNode: _focusNode,
                   autofocus: true,
                   onSubmitted: (newName) {
-                    babyModel.setBabyName(newName);
-                    setState(() {
-                      _isEditing = false;
-                    });
+                    // The focus listener will handle saving.
                   },
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
+                    hintText: 'Enter baby name',
+                    hintStyle: TextStyle(color: Colors.white54),
                   ),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
                 ),
@@ -218,9 +237,14 @@ class HeaderState extends State<Header> {
                 onTap: () {
                   setState(() {
                     _isEditing = true;
+                    _originalName = babyModel.babyName;
+                    _nameController.clear();
                   });
                 },
-                child: Text(babyModel.babyName, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
+                child: Text(
+                  babyModel.babyName.isNotEmpty ? babyModel.babyName : 'Add Your Baby Name',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+                ),
               ),
         Row(
           children: [
@@ -326,6 +350,14 @@ class StatsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final history = Provider.of<HistoryModel>(context);
 
+    String formatDuration(Duration d) {
+      if (d.inHours > 0) {
+        return "${d.inHours}h ${d.inMinutes.remainder(60)}m";
+      } else {
+        return "${d.inMinutes}m";
+      }
+    }
+
     return Card(
       margin: const EdgeInsets.all(16),
       elevation: 4,
@@ -335,13 +367,14 @@ class StatsPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Last 24 Hours", style: Theme.of(context).textTheme.titleLarge),
+            Text("Statistics", style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem("Feeds", "${history.feedsInLast24Hours}"),
-                _buildStatItem("Total Time", "${history.totalTodayDuration.inMinutes}m"),
+                _buildStatItem("Feeds in 24h", "${history.feedsInLast24Hours}"),
+                _buildStatItem("Total Time Today", "${history.totalTodayDuration.inMinutes}m"),
+                _buildStatItem("Since Last Feed", formatDuration(history.timeSinceLastFeed)),
               ],
             ),
             const SizedBox(height: 10),
