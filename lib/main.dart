@@ -92,7 +92,7 @@ class BreastfeedingApp extends StatelessWidget {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.black,
-          backgroundColor: primarySeedColor.shade200,
+          backgroundColor: Colors.deepPurple.shade200,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
@@ -367,7 +367,7 @@ class StatsPanel extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             if (history.totalTodayFeeds > 0)
-              AspectRatio(
+              const AspectRatio(
                 aspectRatio: 2,
                 child: BreastSideChart(),
               ),
@@ -388,6 +388,8 @@ class StatsPanel extends StatelessWidget {
 }
 
 class BreastSideChart extends StatelessWidget {
+  const BreastSideChart({super.key});
+
   @override
   Widget build(BuildContext context) {
     final history = Provider.of<HistoryModel>(context);
