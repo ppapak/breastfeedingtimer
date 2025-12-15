@@ -53,6 +53,12 @@ class HistoryModel with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteSession(FeedSession session) async {
+    _sessions.remove(session);
+    await saveSessions();
+    notifyListeners();
+  }
+
   Future<void> loadSessions() async {
     final prefs = await SharedPreferences.getInstance();
     final sessionsJson = prefs.getString(_sessionsKey) ?? '[]';

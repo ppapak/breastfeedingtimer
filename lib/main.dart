@@ -18,10 +18,27 @@ void main() {
         ChangeNotifierProvider(create: (context) => TimerModel()),
         ChangeNotifierProvider(create: (context) => HistoryModel()),
         ChangeNotifierProvider(create: (context) => BabyModel()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
       ],
       child: const BreastfeedingApp(),
     ),
   );
+}
+
+class ThemeProvider with ChangeNotifier {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  ThemeMode get themeMode => _themeMode;
+
+  void toggleTheme() {
+    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
+  }
+
+  void setSystemTheme() {
+    _themeMode = ThemeMode.system;
+    notifyListeners();
+  }
 }
 
 class BreastfeedingApp extends StatelessWidget {
@@ -29,21 +46,69 @@ class BreastfeedingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Breastfeeding Timer',
-      theme: ThemeData(
-        primaryColor: const Color(0xFF4A5C55),
-        scaffoldBackgroundColor: const Color(0xFFD4E2D4),
-        colorScheme: const ColorScheme.light().copyWith(
-          primary: const Color(0xFF4A5C55),
-          secondary: const Color(0xFFF7A78C),
-        ),
-        textTheme: GoogleFonts.latoTextTheme(Theme.of(context).textTheme).copyWith(
-          displayLarge: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF4A5C55)),
-          bodyLarge: const TextStyle(fontSize: 16, color: Color(0xFF4A5C55)),
+    const Color primarySeedColor = Colors.deepPurple;
+
+    final TextTheme appTextTheme = TextTheme(
+      displayLarge: GoogleFonts.oswald(fontSize: 48, fontWeight: FontWeight.bold),
+      titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
+      bodyMedium: GoogleFonts.openSans(fontSize: 14),
+      labelLarge: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
+    );
+
+    final ThemeData lightTheme = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primarySeedColor,
+        brightness: Brightness.light,
+      ),
+      textTheme: appTextTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: primarySeedColor,
+        foregroundColor: Colors.white,
+        titleTextStyle: GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: primarySeedColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         ),
       ),
-      home: const HomeScreen(),
+    );
+
+    final ThemeData darkTheme = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primarySeedColor,
+        brightness: Brightness.dark,
+      ),
+      textTheme: appTextTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.grey[900],
+        foregroundColor: Colors.white,
+        titleTextStyle: GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.black,
+          backgroundColor: primarySeedColor.shade200,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        ),
+      ),
+    );
+
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Breastfeeding Timer',
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: themeProvider.themeMode,
+          home: const HomeScreen(),
+        );
+      },
     );
   }
 }
@@ -54,14 +119,42 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: const [
-          SizedBox(height: 40), // Add some space at the top
-          Header(),
-          TimerControl(),
-          StatsPanel(),
-          Expanded(child: HistoryList()),
-        ],
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              title: const Header(),
+              expandedHeight: 120,
+              floating: true,
+              pinned: true,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          ];
+        },
+        body: ListView(
+          children: const [
+            TimerControl(),
+            StatsPanel(),
+            Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text("History", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ),
+            HistoryList(),
+          ],
+        ),
       ),
     );
   }
@@ -91,17 +184,6 @@ class HeaderState extends State<Header> {
     super.dispose();
   }
 
-  IconData _getBabyIcon(Gender gender) {
-    switch (gender) {
-      case Gender.boy:
-        return Icons.child_care;
-      case Gender.girl:
-        return Icons.face_3;
-      default:
-        return Icons.child_care;
-    }
-  }
-
   void _launchEmail() async {
     final history = Provider.of<HistoryModel>(context, listen: false);
     final baby = Provider.of<BabyModel>(context, listen: false);
@@ -129,67 +211,61 @@ class HeaderState extends State<Header> {
   @override
   Widget build(BuildContext context) {
     final babyModel = Provider.of<BabyModel>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => babyModel.toggleGender(),
-                child: Icon(_getBabyIcon(babyModel.gender), size: 40, color: const Color(0xFF4A5C55)),
-              ),
-              const SizedBox(width: 10),
-              _isEditing
-                  ? SizedBox(
-                      width: 150,
-                      child: TextField(
-                        controller: _nameController,
-                        autofocus: true,
-                        onSubmitted: (newName) {
-                          babyModel.setBabyName(newName);
-                          setState(() {
-                            _isEditing = false;
-                          });
-                        },
-                         decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        style: Theme.of(context).textTheme.displayLarge,
-                      ),
-                    )
-                  : GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isEditing = true;
-                        });
-                      },
-                      child: Text(babyModel.babyName, style: Theme.of(context).textTheme.displayLarge),
-                    ),
-            ],
-          ),
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(Icons.share, color: const Color(0xFF4A5C55)),
-                onPressed: _launchEmail,
-              ),
-              IconButton(
-                icon: Icon(Icons.settings, color: const Color(0xFF4A5C55)),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SettingsPage()),
-                  );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _isEditing
+            ? SizedBox(
+                width: 150,
+                child: TextField(
+                  controller: _nameController,
+                  autofocus: true,
+                  onSubmitted: (newName) {
+                    babyModel.setBabyName(newName);
+                    setState(() {
+                      _isEditing = false;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+                ),
+              )
+            : GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isEditing = true;
+                  });
                 },
+                child: Text(babyModel.babyName, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
               ),
-            ],
-          ),
-        ],
-      ),
+        Row(
+          children: [
+            IconButton(
+              icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
+              onPressed: () => themeProvider.toggleTheme(),
+              tooltip: 'Toggle Theme',
+            ),
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: _launchEmail,
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                );
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -203,24 +279,24 @@ class TimerControl extends StatelessWidget {
     final history = Provider.of<HistoryModel>(context, listen: false);
 
     String formatDuration(Duration d) {
-      return "${d.inMinutes.toString().padLeft(2, '0')}m ${d.inSeconds.remainder(60).toString().padLeft(2, '0')}s";
+      return "${d.inMinutes.toString().padLeft(2, '0')}:${d.inSeconds.remainder(60).toString().padLeft(2, '0')}";
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           Text(
             formatDuration(timer.duration),
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(fontSize: 48),
+            style: Theme.of(context).textTheme.displayLarge,
           ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildBreastButton(context, BreastSide.left, timer, history, key: const Key('left_breast_button')),
-              _buildAddButton(context, timer, history),
-              _buildBreastButton(context, BreastSide.right, timer, history, key: const Key('right_breast_button')),
+              _buildBreastButton(context, BreastSide.left, timer, history),
+              _buildAddButton(context),
+              _buildBreastButton(context, BreastSide.right, timer, history),
             ],
           ),
         ],
@@ -228,12 +304,11 @@ class TimerControl extends StatelessWidget {
     );
   }
 
-  Widget _buildBreastButton(BuildContext context, BreastSide side, TimerModel timer, HistoryModel history, {Key? key}) {
+  Widget _buildBreastButton(BuildContext context, BreastSide side, TimerModel timer, HistoryModel history) {
     final isSelected = timer.isRunning && timer.currentSide == side;
 
-    return GestureDetector(
-      key: key,
-      onTap: () {
+    return ElevatedButton(
+      onPressed: () {
         if (timer.isRunning && timer.currentSide == side) {
           final session = FeedSession(
             startTime: DateTime.now().subtract(timer.duration),
@@ -246,35 +321,21 @@ class TimerControl extends StatelessWidget {
           timer.startTimer(side);
         }
       },
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.secondary : Colors.white,
-          shape: BoxShape.circle,
-          border: Border.all(color: Theme.of(context).primaryColor, width: 3),
-        ),
-        child: _buildBreastIcon(context, side),
+      style: ElevatedButton.styleFrom(
+        shape: const CircleBorder(),
+        padding: const EdgeInsets.all(30),
+        backgroundColor: isSelected ? Theme.of(context).colorScheme.secondary : null,
       ),
+      child: Text(side == BreastSide.left ? "L" : "R", style: const TextStyle(fontSize: 24)),
     );
   }
 
-  Widget _buildAddButton(BuildContext context, TimerModel timer, HistoryModel history) {
+  Widget _buildAddButton(BuildContext context) {
     return FloatingActionButton(
       onPressed: () async {
-        _showManualEntryDialog(context);
+        showDialog(context: context, builder: (context) => const ManualEntryDialog());
       },
-      backgroundColor: Theme.of(context).primaryColor,
       child: const Icon(Icons.add),
-    );
-  }
-
-  void _showManualEntryDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return const ManualEntryDialog();
-      },
     );
   }
 }
@@ -286,80 +347,86 @@ class StatsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final history = Provider.of<HistoryModel>(context);
 
-    return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7A78C),
-        borderRadius: BorderRadius.circular(15),
+    return Card(
+      margin: const EdgeInsets.all(16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Last 24 Hours", style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem("Feeds", "${history.feedsInLast24Hours}"),
+                _buildStatItem("Total Time", "${history.totalTodayDuration.inMinutes}m"),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (history.totalTodayFeeds > 0)
+              AspectRatio(
+                aspectRatio: 2,
+                child: BreastSideChart(),
+              ),
+          ],
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("${history.timeSinceLastFeed.inMinutes}m since last breast feeding."),
-          const SizedBox(height: 5),
-          Text("${history.feedsInLast24Hours} feeds in the last 24 hours."),
-          const Divider(height: 20, thickness: 1, color: Colors.white),
-          Row(
-            children: [
-              const Icon(Icons.calendar_today, size: 16),
-              const SizedBox(width: 5),
-              Text("TODAY"),
-            ],
-          ),
-          const SizedBox(height: 5),
-          Text(
-              "- ${history.totalTodayFeeds} total feeds with ${history.totalTodayDuration.inMinutes} total mins feed time, using ${history.leftBreastPercentage.toStringAsFixed(1)}% your Left and ${history.rightBreastPercentage.toStringAsFixed(1)}% your Right breast."),
-        ],
-      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value) {
+    return Column(
+      children: [
+        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontSize: 14)),
+      ],
     );
   }
 }
 
-Widget _buildBreastIcon(BuildContext context, BreastSide side) {
-  return CustomPaint(
-    size: const Size(60, 60),
-    painter: _BreastIconPainter(side, Theme.of(context).primaryColor),
-  );
-}
-
-class _BreastIconPainter extends CustomPainter {
-  final BreastSide side;
-  final Color color;
-
-  _BreastIconPainter(this.side, this.color);
-
+class BreastSideChart extends StatelessWidget {
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-
-    canvas.drawCircle(center, radius, paint);
-
-    if (side == BreastSide.left) {
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius / 2),
-        0, // Start angle
-        3.14, // Sweep angle (180 degrees)
-        false,
-        paint,
-      );
-    } else {
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius / 2),
-        3.14, // Start angle (180 degrees)
-        3.14, // Sweep angle (180 degrees)
-        false,
-        paint,
-      );
-    }
+  Widget build(BuildContext context) {
+    final history = Provider.of<HistoryModel>(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildChartSegment(context, "Left", history.leftBreastPercentage, Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 10),
+        _buildChartSegment(context, "Right", history.rightBreastPercentage, Theme.of(context).colorScheme.secondary),
+      ],
+    );
   }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget _buildChartSegment(BuildContext context, String label, double percentage, Color color) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          height: 80,
+          width: 80,
+          child: Stack(
+            children: [
+              SizedBox(
+                height: 80,
+                width: 80,
+                child: CircularProgressIndicator(
+                  value: percentage / 100,
+                  strokeWidth: 8,
+                  backgroundColor: Colors.grey.shade300,
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ),
+              Center(child: Text("${percentage.toStringAsFixed(0)}%")),
+            ],
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(label),
+      ],
+    );
+  }
 }
