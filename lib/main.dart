@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 import 'models.dart';
 import 'providers.dart';
@@ -133,7 +134,7 @@ class HomeScreen extends StatelessWidget {
                     gradient: LinearGradient(
                       colors: [
                         Theme.of(context).colorScheme.primary,
-                        Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                        Theme.of(context).colorScheme.primary.withAlpha(179),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -201,10 +202,42 @@ class HeaderState extends State<Header> {
       query: 'subject=${Uri.encodeComponent(subject)}&body=${Uri.encodeComponent(body)}',
     );
 
-    if (await canLaunchUrl(emailLaunchUri)) {
+    try {
       await launchUrl(emailLaunchUri);
-    } else {
-      throw 'Could not launch $emailLaunchUri';
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Email Content'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Subject:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(subject),
+                const SizedBox(height: 10),
+                const Text('Body:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(body),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: 'Subject: $subject\n\n$body'));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Email content copied to clipboard')),
+                );
+              },
+              child: const Text('Copy'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
