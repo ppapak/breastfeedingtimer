@@ -262,12 +262,12 @@ class StatsPanel extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -297,7 +297,7 @@ class StatsPanel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(value, style: Theme.of(context).textTheme.titleLarge),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
