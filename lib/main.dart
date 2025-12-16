@@ -170,6 +170,14 @@ class MyHomePage extends StatelessWidget {
     final percentage = side == BreastSide.left ? history.leftBreastPercentage : history.rightBreastPercentage;
     const buttonSize = 110.0;
 
+    String formatDuration(Duration d) {
+        if (d.inMinutes > 0) {
+            return "${d.inMinutes}m ${d.inSeconds.remainder(60)}s";
+        } else {
+            return "${d.inSeconds}s";
+        }
+    }
+
     return SizedBox(
       height: buttonSize,
       width: buttonSize,
@@ -208,7 +216,9 @@ class MyHomePage extends StatelessWidget {
                 foregroundColor: isSelected ? Theme.of(context).colorScheme.onTertiary : Theme.of(context).colorScheme.onSurface,
                 elevation: 8,
               ),
-              child: Text(side == BreastSide.left ? "L" : "R", style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
+              child: isSelected
+                  ? Text(formatDuration(timer.duration), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))
+                  : Text(side == BreastSide.left ? "L" : "R", style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
