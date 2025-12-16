@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -44,8 +43,10 @@ class HistoryModel with ChangeNotifier {
   List<Activity> get activities => _activities;
 
   HistoryModel() {
-    loadActivities();
+    loadHistory();
   }
+
+  DateTime? get lastFeedTime => _activities.isNotEmpty ? _activities.first.startTime : null;
 
   Future<void> addActivity(Activity activity) async {
     _activities.insert(0, activity);
@@ -59,7 +60,7 @@ class HistoryModel with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadActivities() async {
+  Future<void> loadHistory() async {
     final prefs = await SharedPreferences.getInstance();
     final activitiesJson = prefs.getString(_activitiesKey) ?? '[]';
     final activitiesList = jsonDecode(activitiesJson) as List;

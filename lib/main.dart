@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,7 +12,7 @@ import 'notification_service.dart';
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     final history = HistoryModel();
-    await history.loadHistory(); // You might need to adjust this
+    await history.loadHistory();
     final timeSinceLastFeed = DateTime.now().difference(history.lastFeedTime ?? DateTime.now());
 
     if (timeSinceLastFeed.inHours >= 5) {
@@ -30,7 +29,7 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
+  await Workmanager().initialize(callbackDispatcher);
   Workmanager().registerPeriodicTask(
     "1",
     "checkLastFeed",

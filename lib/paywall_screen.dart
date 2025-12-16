@@ -31,7 +31,7 @@ class PaywallScreenState extends State<PaywallScreen> {
               title: Text(product.title),
               subtitle: Text(product.description),
               trailing: Text(product.price),
-              onTap: () => widget.purchaseProvider.purchaseProduct(product.id),
+              onTap: () => widget.purchaseProvider.purchaseSubscription(),
             ),
         ],
       ),
