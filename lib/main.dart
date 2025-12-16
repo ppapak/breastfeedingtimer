@@ -160,10 +160,6 @@ class HomeScreen extends StatelessWidget {
           children: const [
             TimerControl(),
             StatsPanel(),
-            Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text("History", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            ),
             HistoryList(),
           ],
         ),
@@ -227,38 +223,55 @@ class HeaderState extends State<Header> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _isEditing
-            ? SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: _nameController,
-                  focusNode: _focusNode,
-                  autofocus: true,
-                  onSubmitted: (newName) {
-                    // The focus listener will handle saving.
-                  },
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                    hintText: 'Enter baby name',
-                    hintStyle: TextStyle(color: Colors.white54),
-                  ),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
-                ),
-              )
-            : GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isEditing = true;
-                    _originalName = babyModel.babyName;
-                    _nameController.clear();
-                  });
-                },
-                child: Text(
-                  babyModel.babyName.isNotEmpty ? babyModel.babyName : 'Add Your Baby Name',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
-                ),
+        Row(
+          children: [
+            GestureDetector(
+              onTap: () {
+                babyModel.pickImage();
+              },
+              child: CircleAvatar(
+                radius: 20,
+                backgroundImage: babyModel.babyImage != null ? FileImage(babyModel.babyImage!) : null,
+                child: babyModel.babyImage == null
+                    ? const Icon(Icons.add_a_photo, size: 20)
+                    : null,
               ),
+            ),
+            const SizedBox(width: 10),
+            _isEditing
+                ? SizedBox(
+                    width: 150,
+                    child: TextField(
+                      controller: _nameController,
+                      focusNode: _focusNode,
+                      autofocus: true,
+                      onSubmitted: (newName) {
+                        // The focus listener will handle saving.
+                      },
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                        hintText: 'Enter baby name',
+                        hintStyle: TextStyle(color: Colors.white54),
+                      ),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+                    ),
+                  )
+                : GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _isEditing = true;
+                        _originalName = babyModel.babyName;
+                        _nameController.clear();
+                      });
+                    },
+                    child: Text(
+                      babyModel.babyName,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
+                    ),
+                  ),
+          ],
+        ),
         Row(
           children: [
             IconButton(
@@ -292,28 +305,34 @@ class TimerControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final timer = Provider.of<TimerModel>(context);
-    final history = Provider.of<HistoryModel>(context, listen: false);
 
     String formatDuration(Duration d) {
       return "${d.inMinutes.toString().padLeft(2, '0')}:${d.inSeconds.remainder(60).toString().padLeft(2, '0')}";
     }
 
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
       child: Column(
         children: [
           Text(
             formatDuration(timer.duration),
-            style: Theme.of(context).textTheme.displayLarge,
+            style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
           ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildBreastButton(context, BreastSide.left, timer, history),
-              _buildAddButton(context),
-              _buildBreastButton(context, BreastSide.right, timer, history),
-            ],
+          const SizedBox(height: 24),
+          Consumer<HistoryModel>(
+            builder: (context, history, child) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildBreastButton(context, BreastSide.left, timer, history),
+                  _buildAddButton(context),
+                  _buildBreastButton(context, BreastSide.right, timer, history),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -322,27 +341,52 @@ class TimerControl extends StatelessWidget {
 
   Widget _buildBreastButton(BuildContext context, BreastSide side, TimerModel timer, HistoryModel history) {
     final isSelected = timer.isRunning && timer.currentSide == side;
+    final percentage = side == BreastSide.left ? history.leftBreastPercentage : history.rightBreastPercentage;
+    const buttonSize = 110.0;
 
-    return ElevatedButton(
-      onPressed: () {
-        if (timer.isRunning && timer.currentSide == side) {
-          final session = FeedSession(
-            startTime: DateTime.now().subtract(timer.duration),
-            duration: timer.duration,
-            breastSide: side,
-          );
-          history.addActivity(session);
-          timer.stopTimer();
-        } else {
-          timer.startTimer(side);
-        }
-      },
-      style: ElevatedButton.styleFrom(
-        shape: const CircleBorder(),
-        padding: const EdgeInsets.all(30),
-        backgroundColor: isSelected ? Theme.of(context).colorScheme.secondary : null,
+    return SizedBox(
+      height: buttonSize,
+      width: buttonSize,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CircularProgressIndicator(
+            value: percentage / 100,
+            strokeWidth: 10,
+            backgroundColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+            valueColor: AlwaysStoppedAnimation<Color>(
+              side == BreastSide.left
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.secondary,
+            ),
+          ),
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                if (timer.isRunning && timer.currentSide == side) {
+                  final session = FeedSession(
+                    startTime: DateTime.now().subtract(timer.duration),
+                    duration: timer.duration,
+                    breastSide: side,
+                  );
+                  history.addActivity(session);
+                  timer.stopTimer();
+                } else {
+                  timer.startTimer(side);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                shape: const CircleBorder(),
+                padding: const EdgeInsets.all(30),
+                backgroundColor: isSelected ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.surface,
+                foregroundColor: isSelected ? Theme.of(context).colorScheme.onTertiary : Theme.of(context).colorScheme.onSurface,
+                elevation: 8,
+              ),
+              child: Text(side == BreastSide.left ? "L" : "R", style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
       ),
-      child: Text(side == BreastSide.left ? "L" : "R", style: const TextStyle(fontSize: 24)),
     );
   }
 
@@ -351,7 +395,8 @@ class TimerControl extends StatelessWidget {
       onPressed: () async {
         showDialog(context: context, builder: (context) => const ManualEntryDialog());
       },
-      child: const Icon(Icons.add),
+      elevation: 8,
+      child: const Icon(Icons.add, size: 32),
     );
   }
 }
@@ -366,93 +411,40 @@ class StatsPanel extends StatelessWidget {
     String formatDuration(Duration d) {
       if (d.inHours > 0) {
         return "${d.inHours}h ${d.inMinutes.remainder(60)}m";
-      } else {
+      } else if (d.inMinutes > 0) {
         return "${d.inMinutes}m";
+      } else {
+        return "${d.inSeconds}s";
       }
     }
 
-    return Card(
-      margin: const EdgeInsets.all(16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Statistics", style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatItem("Feeds in 24h", "${history.feedsInLast24Hours}"),
-                _buildStatItem("Total Time Today", "${history.totalTodayDuration.inMinutes}m"),
-                _buildStatItem("Since Last Feed", formatDuration(history.timeSinceLastFeed)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            if (history.totalTodayFeeds > 0)
-              const AspectRatio(
-                aspectRatio: 2,
-                child: BreastSideChart(),
-              ),
-          ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatItem(context, "Feeds/24h", "${history.feedsInLast24Hours}", Icons.restaurant_menu),
+              _buildStatItem(context, "Total Today", "${history.totalTodayDuration.inMinutes}m", Icons.timer),
+              _buildStatItem(context, "Last Feed", formatDuration(history.timeSinceLastFeed), Icons.history),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildStatItem(String label, String value) {
+  Widget _buildStatItem(BuildContext context, String label, String value, IconData icon) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        Text(label, style: const TextStyle(fontSize: 14)),
-      ],
-    );
-  }
-}
-
-class BreastSideChart extends StatelessWidget {
-  const BreastSideChart({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final history = Provider.of<HistoryModel>(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildChartSegment(context, "Left", history.leftBreastPercentage, Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 10),
-        _buildChartSegment(context, "Right", history.rightBreastPercentage, Theme.of(context).colorScheme.secondary),
-      ],
-    );
-  }
-
-  Widget _buildChartSegment(BuildContext context, String label, double percentage, Color color) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        SizedBox(
-          height: 80,
-          width: 80,
-          child: Stack(
-            children: [
-              SizedBox(
-                height: 80,
-                width: 80,
-                child: CircularProgressIndicator(
-                  value: percentage / 100,
-                  strokeWidth: 8,
-                  backgroundColor: Colors.grey.shade300,
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                ),
-              ),
-              Center(child: Text("${percentage.toStringAsFixed(0)}%")),
-            ],
-          ),
-        ),
-        const SizedBox(height: 5),
-        Text(label),
+        Icon(icon, color: Theme.of(context).colorScheme.secondary, size: 28),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],
     );
   }
