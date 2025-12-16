@@ -2,12 +2,40 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:workmanager/workmanager.dart';
 import 'models.dart';
 import 'providers.dart';
 import 'widgets.dart';
 import 'purchase_provider.dart';
+import 'notification_service.dart';
 
-void main() {
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    final history = HistoryModel();
+    await history.loadHistory(); // You might need to adjust this
+    final timeSinceLastFeed = DateTime.now().difference(history.lastFeedTime ?? DateTime.now());
+
+    if (timeSinceLastFeed.inHours >= 5) {
+      final notificationService = NotificationService();
+      await notificationService.init();
+      await notificationService.showNotification(
+        'Time for a feed?',
+        'It has been over 5 hours since your last logged feed.',
+      );
+    }
+    return Future.value(true);
+  });
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  Workmanager().registerPeriodicTask(
+    "1",
+    "checkLastFeed",
+    frequency: const Duration(hours: 1),
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -281,7 +309,7 @@ class StatsPanel extends StatelessWidget {
                 const SizedBox(width: 24),
                 _buildStatItem(context, "Avg Today", formatAverageDuration(history.averageFeedDurationToday), Icons.timelapse),
                 const SizedBox(width: 24),
-                _buildStatItem(context, "Avg Yesterday", formatAverageDuration(history.averageFeedDurationYesterday), Icons.timelapse),
+                _buildStatItem(context, "Avg Yesterday", formatAverage_duration_yesterday), Icons.timelapse),
                 const SizedBox(width: 24),
                 _buildStatItem(context, "Avg Last 7 Days", formatAverageDuration(history.averageFeedDurationLast7Days), Icons.timelapse),
               ],
