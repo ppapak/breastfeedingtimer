@@ -418,20 +418,38 @@ class StatsPanel extends StatelessWidget {
       }
     }
 
+    String formatAverageDuration(Duration d) {
+      if (d == Duration.zero) return '0m 0s';
+      final minutes = d.inMinutes;
+      final seconds = d.inSeconds.remainder(60);
+      return '${minutes}m ${seconds}s';
+    }
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildStatItem(context, "Feeds/24h", "${history.feedsInLast24Hours}", Icons.restaurant_menu),
-              _buildStatItem(context, "Total Today", "${history.totalTodayDuration.inMinutes}m", Icons.timer),
-              _buildStatItem(context, "Last Feed", formatDuration(history.timeSinceLastFeed), Icons.history),
-            ],
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem(context, "Feeds/24h", "${history.feedsInLast24Hours}", Icons.restaurant_menu),
+                const SizedBox(width: 24),
+                _buildStatItem(context, "Total Today", "${history.totalTodayDuration.inMinutes}m", Icons.timer),
+                const SizedBox(width: 24),
+                _buildStatItem(context, "Last Feed", formatDuration(history.timeSinceLastFeed), Icons.history),
+                const SizedBox(width: 24),
+                _buildStatItem(context, "Avg Today", formatAverageDuration(history.averageFeedDurationToday), Icons.timelapse),
+                const SizedBox(width: 24),
+                _buildStatItem(context, "Avg Yesterday", formatAverageDuration(history.averageFeedDurationYesterday), Icons.timelapse),
+                const SizedBox(width: 24),
+                _buildStatItem(context, "Avg Last 7 Days", formatAverageDuration(history.averageFeedDurationLast7Days), Icons.timelapse),
+              ],
+            ),
           ),
         ),
       ),

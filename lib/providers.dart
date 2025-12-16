@@ -112,4 +112,57 @@ class HistoryModel with ChangeNotifier {
     final rightCount = _todayFeeds.where((s) => s.breastSide == BreastSide.right).length;
     return (rightCount / _todayFeeds.length) * 100;
   }
+
+  // Average feed duration today
+  Duration get averageFeedDurationToday {
+    final todayFeeds = _activities.whereType<FeedSession>().where((s) {
+      final now = DateTime.now();
+      return s.startTime.year == now.year &&
+          s.startTime.month == now.month &&
+          s.startTime.day == now.day;
+    }).toList();
+
+    if (todayFeeds.isEmpty) {
+      return Duration.zero;
+    }
+
+    final totalDuration =
+        todayFeeds.fold<Duration>(Duration.zero, (prev, s) => prev + s.duration);
+    return totalDuration ~/ todayFeeds.length;
+  }
+
+  // Average feed duration yesterday
+  Duration get averageFeedDurationYesterday {
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    final yesterdayFeeds = _activities.whereType<FeedSession>().where((s) {
+      return s.startTime.year == yesterday.year &&
+          s.startTime.month == yesterday.month &&
+          s.startTime.day == yesterday.day;
+    }).toList();
+
+    if (yesterdayFeeds.isEmpty) {
+      return Duration.zero;
+    }
+
+    final totalDuration = yesterdayFeeds.fold<Duration>(
+        Duration.zero, (prev, s) => prev + s.duration);
+    return totalDuration ~/ yesterdayFeeds.length;
+  }
+
+  // Average feed duration in the last 7 days
+  Duration get averageFeedDurationLast7Days {
+    final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+    final last7DaysFeeds = _activities
+        .whereType<FeedSession>()
+        .where((s) => s.startTime.isAfter(sevenDaysAgo))
+        .toList();
+
+    if (last7DaysFeeds.isEmpty) {
+      return Duration.zero;
+    }
+
+    final totalDuration = last7DaysFeeds.fold<Duration>(
+        Duration.zero, (prev, s) => prev + s.duration);
+    return totalDuration ~/ last7DaysFeeds.length;
+  }
 }
