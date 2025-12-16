@@ -1,4 +1,5 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -29,7 +30,7 @@ void callbackDispatcher() {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
+  await Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
   Workmanager().registerPeriodicTask(
     "1",
     "checkLastFeed",
@@ -148,6 +149,8 @@ class MyHomePage extends StatelessWidget {
     final history = Provider.of<HistoryModel>(context);
     final purchaseProvider = Provider.of<PurchaseProvider>(context);
 
+    final isSubscribed = kDebugMode || purchaseProvider.isSubscribed;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Material AI Demo'),
@@ -167,7 +170,7 @@ class MyHomePage extends StatelessWidget {
       body: Column(
         children: [
           const StatsPanel(),
-          if (purchaseProvider.isSubscribed)
+          if (isSubscribed)
             Expanded(
               child: Center(
                 child: Row(
@@ -183,7 +186,7 @@ class MyHomePage extends StatelessWidget {
             const Paywall(),
         ],
       ),
-      floatingActionButton: purchaseProvider.isSubscribed ? _buildAddButton(context) : null,
+      floatingActionButton: isSubscribed ? _buildAddButton(context) : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: const BottomAppBar(
         shape: CircularNotchedRectangle(),
@@ -309,7 +312,7 @@ class StatsPanel extends StatelessWidget {
                 const SizedBox(width: 24),
                 _buildStatItem(context, "Avg Today", formatAverageDuration(history.averageFeedDurationToday), Icons.timelapse),
                 const SizedBox(width: 24),
-                _buildStatItem(context, "Avg Yesterday", formatAverage_duration_yesterday), Icons.timelapse),
+                _buildStatItem(context, "Avg Yesterday", formatAverageDuration(history.averageFeedDurationYesterday), Icons.timelapse),
                 const SizedBox(width: 24),
                 _buildStatItem(context, "Avg Last 7 Days", formatAverageDuration(history.averageFeedDurationLast7Days), Icons.timelapse),
               ],
