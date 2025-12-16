@@ -94,7 +94,9 @@ class HistoryList extends StatelessWidget {
           style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18),
         ),
         subtitle: Text(
-          DateFormat.yMMMMd().add_jm().format(activity.startTime),
+          activity.grams != null
+              ? '${activity.grams}g - ${DateFormat.yMMMMd().add_jm().format(activity.startTime)}'
+              : DateFormat.yMMMMd().add_jm().format(activity.startTime),
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       );
@@ -117,11 +119,12 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
   TimeOfDay _selectedTime = TimeOfDay.now();
 
   // Breastfeeding state
-  int? _selectedDuration;
+  double _selectedDuration = 15.0;
   BreastSide _selectedSide = BreastSide.left;
 
   // Solid food state
-  final TextEditingController _foodController = TextEditingController();
+  final TextEditingController _foodController = TextEditingController(text: 'Formula');
+  final TextEditingController _gramsController = TextEditingController();
 
   @override
   void initState() {
@@ -133,6 +136,7 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
   void dispose() {
     _tabController.dispose();
     _foodController.dispose();
+    _gramsController.dispose();
     super.dispose();
   }
 
@@ -140,7 +144,8 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Add Manual Entry'),
-      content: SingleChildScrollView(
+      content: SizedBox(
+        width: double.maxFinite,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -151,14 +156,16 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
                 Tab(text: 'Solid Food'),
               ],
             ),
-            SizedBox(
-              height: 300,
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildBreastfeedingForm(),
-                  _buildSolidFoodForm(),
-                ],
+            Flexible(
+              child: SizedBox(
+                height: 300,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildBreastfeedingForm(),
+                    _buildSolidFoodForm(),
+                  ],
+                ),
               ),
             ),
           ],
@@ -175,69 +182,83 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
   }
 
   Widget _buildBreastfeedingForm() {
-    return Column(
-      children: [
-        ListTile(
-          title: Text('Date: ${DateFormat.yMd().format(_selectedDate)}'),
-          trailing: const Icon(Icons.calendar_today),
-          onTap: _pickDate,
-        ),
-        ListTile(
-          title: Text('Time: ${_selectedTime.format(context)}'),
-          trailing: const Icon(Icons.access_time),
-          onTap: _pickTime,
-        ),
-        DropdownButtonFormField<int>(
-          initialValue: _selectedDuration,
-          hint: const Text('Duration (minutes)'),
-          items: List.generate(61, (index) => index)
-              .map((minute) => DropdownMenuItem(
-                    value: minute,
-                    child: Text('$minute min'),
-                  ))
-              .toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedDuration = value;
-            });
-          },
-        ),
-        const SizedBox(height: 20),
-        ToggleButtons(
-          isSelected: [_selectedSide == BreastSide.left, _selectedSide == BreastSide.right],
-          onPressed: (index) {
-            setState(() {
-              _selectedSide = index == 0 ? BreastSide.left : BreastSide.right;
-            });
-          },
-          borderRadius: BorderRadius.circular(8),
-          children: const [
-            Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('Left')),
-            Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('Right')),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Column(
+          children: [
+            ListTile(
+              title: Text('Date: ${DateFormat.yMd().format(_selectedDate)}'),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: _pickDate,
+            ),
+            ListTile(
+              title: Text('Time: ${_selectedTime.format(context)}'),
+              trailing: const Icon(Icons.access_time),
+              onTap: _pickTime,
+            ),
+            const SizedBox(height: 20),
+            Text('Duration: ${_selectedDuration.round()} minutes'),
+            Slider(
+              value: _selectedDuration,
+              min: 0,
+              max: 60,
+              divisions: 60,
+              label: '${_selectedDuration.round()} min',
+              onChanged: (value) {
+                setState(() {
+                  _selectedDuration = value;
+                });
+              },
+            ),
+            const SizedBox(height: 20),
+            ToggleButtons(
+              isSelected: [_selectedSide == BreastSide.left, _selectedSide == BreastSide.right],
+              onPressed: (index) {
+                setState(() {
+                  _selectedSide = index == 0 ? BreastSide.left : BreastSide.right;
+                });
+              },
+              borderRadius: BorderRadius.circular(8),
+              children: const [
+                Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('Left')),
+                Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('Right')),
+              ],
+            )
           ],
-        )
-      ],
+        ),
+      ),
     );
   }
 
   Widget _buildSolidFoodForm() {
-    return Column(
-      children: [
-        ListTile(
-          title: Text('Date: ${DateFormat.yMd().format(_selectedDate)}'),
-          trailing: const Icon(Icons.calendar_today),
-          onTap: _pickDate,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Column(
+          children: [
+            ListTile(
+              title: Text('Date: ${DateFormat.yMd().format(_selectedDate)}'),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: _pickDate,
+            ),
+            ListTile(
+              title: Text('Time: ${_selectedTime.format(context)}'),
+              trailing: const Icon(Icons.access_time),
+              onTap: _pickTime,
+            ),
+            TextFormField(
+              controller: _foodController,
+              decoration: const InputDecoration(labelText: 'Food'),
+            ),
+            TextFormField(
+              controller: _gramsController,
+              decoration: const InputDecoration(labelText: 'Grams'),
+              keyboardType: TextInputType.number,
+            ),
+          ],
         ),
-        ListTile(
-          title: Text('Time: ${_selectedTime.format(context)}'),
-          trailing: const Icon(Icons.access_time),
-          onTap: _pickTime,
-        ),
-        TextFormField(
-          controller: _foodController,
-          decoration: const InputDecoration(labelText: 'Food'),
-        ),
-      ],
+      ),
     );
   }
 
@@ -252,25 +273,20 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
 
     if (_tabController.index == 0) {
       // Breastfeeding
-      if (_selectedDuration != null) {
-        final session = FeedSession(
-          startTime: startTime,
-          duration: Duration(minutes: _selectedDuration!),
-          breastSide: _selectedSide,
-        );
-        Provider.of<HistoryModel>(context, listen: false).addActivity(session);
-        Navigator.of(context).pop();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a duration')),
-        );
-      }
+      final session = FeedSession(
+        startTime: startTime,
+        duration: Duration(minutes: _selectedDuration.round()),
+        breastSide: _selectedSide,
+      );
+      Provider.of<HistoryModel>(context, listen: false).addActivity(session);
+      Navigator.of(context).pop();
     } else {
       // Solid Food
       if (_foodController.text.isNotEmpty) {
         final solidFeed = SolidFeed(
           startTime: startTime,
           food: _foodController.text,
+          grams: int.tryParse(_gramsController.text),
         );
         Provider.of<HistoryModel>(context, listen: false).addActivity(solidFeed);
         Navigator.of(context).pop();

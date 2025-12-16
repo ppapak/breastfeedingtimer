@@ -38,16 +38,19 @@ class FeedSession extends Activity {
 
 class SolidFeed extends Activity {
   final String food;
+  final int? grams;
 
   SolidFeed({
     required super.startTime,
     required this.food,
+    this.grams,
   });
 
   factory SolidFeed.fromJson(Map<String, dynamic> json) {
     return SolidFeed(
       startTime: DateTime.parse(json['startTime']),
       food: json['food'],
+      grams: json['grams'],
     );
   }
 
@@ -56,5 +59,6 @@ class SolidFeed extends Activity {
         'type': 'SolidFeed',
         'startTime': startTime.toIso8601String(),
         'food': food,
+        'grams': grams,
       };
 }
