@@ -1,31 +1,22 @@
 
-import 'dart:async';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
-
 import 'models.dart';
 import 'providers.dart';
 import 'widgets.dart';
-import 'baby_provider.dart';
-import 'settings_page.dart';
 import 'purchase_provider.dart';
-import 'paywall_screen.dart';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => TimerModel()),
         ChangeNotifierProvider(create: (context) => HistoryModel()),
-        ChangeNotifierProvider(create: (context) => BabyModel()),
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
-        Provider(create: (context) => PurchaseProvider()),
+        ChangeNotifierProvider(create: (context) => PurchaseProvider()),
       ],
-      child: const BreastfeedingApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -46,295 +37,130 @@ class ThemeProvider with ChangeNotifier {
   }
 }
 
-class BreastfeedingApp extends StatelessWidget {
-  const BreastfeedingApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final purchaseProvider = Provider.of<PurchaseProvider>(context, listen: false);
-    purchaseProvider.initialize();
+    const Color primarySeedColor = Colors.deepPurple;
+
+    final TextTheme appTextTheme = TextTheme(
+      displayLarge: GoogleFonts.oswald(fontSize: 57, fontWeight: FontWeight.bold),
+      titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
+      bodyMedium: GoogleFonts.openSans(fontSize: 14),
+    );
+
+    final ThemeData lightTheme = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primarySeedColor,
+        brightness: Brightness.light,
+      ),
+      textTheme: appTextTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: primarySeedColor,
+        foregroundColor: Colors.white,
+        titleTextStyle: GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: primarySeedColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          textStyle: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+      ),
+    );
+
+    final ThemeData darkTheme = ThemeData(
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primarySeedColor,
+        brightness: Brightness.dark,
+      ),
+      textTheme: appTextTheme,
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.grey[900],
+        foregroundColor: Colors.white,
+        titleTextStyle: GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.black,
+          backgroundColor: Colors.deepPurple.shade200,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          textStyle: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+      ),
+    );
 
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
-          title: 'Breastfeeding Timer',
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.deepPurple,
-              brightness: Brightness.light,
-            ),
-            textTheme: GoogleFonts.latoTextTheme(),
-          ),
-          darkTheme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.deepPurple,
-              brightness: Brightness.dark,
-            ),
-            textTheme: GoogleFonts.latoTextTheme(),
-          ),
+          title: 'Flutter Material AI App',
+          theme: lightTheme,
+          darkTheme: darkTheme,
           themeMode: themeProvider.themeMode,
-          home: const InitialScreen(),
+          home: const MyHomePage(),
         );
       },
     );
   }
 }
 
-class InitialScreen extends StatefulWidget {
-  const InitialScreen({super.key});
-
-  @override
-  InitialScreenState createState() => InitialScreenState();
-}
-
-class InitialScreenState extends State<InitialScreen> {
-  @override
-  void initState() {
-    super.initState();
-    if (kReleaseMode) {
-      _checkTrialStatus();
-    }
-  }
-
-  Future<void> _checkTrialStatus() async {
-    final purchaseProvider = Provider.of<PurchaseProvider>(context, listen: false);
-    final isTrialActive = await purchaseProvider.isTrialActive();
-
-    if (!isTrialActive) {
-      final isPurchased = purchaseProvider.isProductPurchased('subscription_gold');
-      if (!isPurchased) {
-        if (mounted) {
-          unawaited(
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PaywallScreen(purchaseProvider: purchaseProvider),
-              ),
-            ),
-          );
-        }
-      }
-    }
-  }
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const HomeScreen();
-  }
-}
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final timer = Provider.of<TimerModel>(context);
+    final history = Provider.of<HistoryModel>(context);
+    final purchaseProvider = Provider.of<PurchaseProvider>(context);
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              title: const Header(),
-              expandedHeight: 80,
-              floating: true,
-              pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Theme.of(context).colorScheme.primary,
-                        Theme.of(context).colorScheme.primary.withAlpha(179),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
+      appBar: AppBar(
+        title: const Text('Material AI Demo'),
+        actions: [
+          IconButton(
+            icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
+            onPressed: () => themeProvider.toggleTheme(),
+            tooltip: 'Toggle Theme',
+          ),
+          IconButton(
+            icon: const Icon(Icons.auto_mode),
+            onPressed: () => themeProvider.setSystemTheme(),
+            tooltip: 'Set System Theme',
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          const StatsPanel(),
+          if (purchaseProvider.isSubscribed)
+            Expanded(
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildBreastButton(context, BreastSide.left, timer, history),
+                    _buildBreastButton(context, BreastSide.right, timer, history),
+                  ],
                 ),
               ),
             )
-          ];
-        },
-        body: ListView(
-          children: const [
-            TimerControl(),
-            StatsPanel(),
-            HistoryList(),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class Header extends StatefulWidget {
-  const Header({super.key});
-
-  @override
-  HeaderState createState() => HeaderState();
-}
-
-class HeaderState extends State<Header> {
-  bool _isEditing = false;
-  late TextEditingController _nameController;
-  late FocusNode _focusNode;
-  String _originalName = '';
-
-  @override
-  void initState() {
-    super.initState();
-    final babyModel = Provider.of<BabyModel>(context, listen: false);
-    _nameController = TextEditingController(text: babyModel.babyName);
-    _focusNode = FocusNode();
-
-    _focusNode.addListener(() {
-      if (!_focusNode.hasFocus && _isEditing) {
-        final newName = _nameController.text.trim();
-        if (newName.isNotEmpty) {
-          babyModel.setBabyName(newName);
-        } else {
-          _nameController.text = _originalName;
-          babyModel.setBabyName(_originalName);
-        }
-        setState(() {
-          _isEditing = false;
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  void _shareApp() {
-    Share.share('Check out this awesome breastfeeding timer app!\n\n[App URL goes here]');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final babyModel = Provider.of<BabyModel>(context);
-    final themeProvider = Provider.of<ThemeProvider>(context);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () {
-                babyModel.pickImage();
-              },
-              child: CircleAvatar(
-                radius: 20,
-                backgroundImage: babyModel.babyImage != null ? FileImage(babyModel.babyImage!) : null,
-                child: babyModel.babyImage == null
-                    ? const Icon(Icons.add_a_photo, size: 20)
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 10),
-            _isEditing
-                ? SizedBox(
-                    width: 150,
-                    child: TextField(
-                      controller: _nameController,
-                      focusNode: _focusNode,
-                      autofocus: true,
-                      onSubmitted: (newName) {
-                        // The focus listener will handle saving.
-                      },
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                        hintText: 'Enter baby name',
-                        hintStyle: TextStyle(color: Colors.white54),
-                      ),
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
-                    ),
-                  )
-                : GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isEditing = true;
-                        _originalName = babyModel.babyName;
-                        _nameController.clear();
-                      });
-                    },
-                    child: Text(
-                      babyModel.babyName,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white),
-                    ),
-                  ),
-          ],
-        ),
-        Row(
-          children: [
-            IconButton(
-              icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
-              onPressed: () => themeProvider.toggleTheme(),
-              tooltip: 'Toggle Theme',
-            ),
-            IconButton(
-              icon: const Icon(Icons.share),
-              onPressed: _shareApp,
-            ),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SettingsPage()),
-                );
-              },
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class TimerControl extends StatelessWidget {
-  const TimerControl({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final timer = Provider.of<TimerModel>(context);
-
-    String formatDuration(Duration d) {
-      return "${d.inMinutes.toString().padLeft(2, '0')}:${d.inSeconds.remainder(60).toString().padLeft(2, '0')}";
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 8.0),
-      child: Column(
-        children: [
-          Text(
-            formatDuration(timer.duration),
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-          ),
-          const SizedBox(height: 24),
-          Consumer<HistoryModel>(
-            builder: (context, history, child) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildBreastButton(context, BreastSide.left, timer, history),
-                  _buildAddButton(context),
-                  _buildBreastButton(context, BreastSide.right, timer, history),
-                ],
-              );
-            },
-          ),
+          else
+            const Paywall(),
         ],
+      ),
+      floatingActionButton: purchaseProvider.isSubscribed ? _buildAddButton(context) : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: const BottomAppBar(
+        shape: CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        child: SizedBox(height: 48),
       ),
     );
   }
@@ -426,7 +252,7 @@ class StatsPanel extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -458,12 +284,50 @@ class StatsPanel extends StatelessWidget {
 
   Widget _buildStatItem(BuildContext context, String label, String value, IconData icon) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Theme.of(context).colorScheme.secondary, size: 28),
+        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(value, style: Theme.of(context).textTheme.titleLarge),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
+    );
+  }
+}
+
+class Paywall extends StatelessWidget {
+  const Paywall({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final purchaseProvider = Provider.of<PurchaseProvider>(context);
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (purchaseProvider.isTrialAvailable)
+            ElevatedButton(
+              onPressed: () {
+                purchaseProvider.startTrial();
+              },
+              child: const Text('Start 7-Day Free Trial'),
+            )
+          else
+            ElevatedButton(
+              onPressed: () {
+                purchaseProvider.purchaseSubscription();
+              },
+              child: const Text('Subscribe Weekly'),
+            ),
+          const SizedBox(height: 20),
+          const Text(
+            'Subscribe to access all features',
+            style: TextStyle(fontSize: 18),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }
