@@ -124,7 +124,7 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
 
   // Solid food state
   final TextEditingController _foodController = TextEditingController(text: 'Formula');
-  final TextEditingController _gramsController = TextEditingController();
+  double _selectedGrams = 50.0;
 
   @override
   void initState() {
@@ -136,7 +136,6 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
   void dispose() {
     _tabController.dispose();
     _foodController.dispose();
-    _gramsController.dispose();
     super.dispose();
   }
 
@@ -251,10 +250,19 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
               controller: _foodController,
               decoration: const InputDecoration(labelText: 'Food'),
             ),
-            TextFormField(
-              controller: _gramsController,
-              decoration: const InputDecoration(labelText: 'Grams'),
-              keyboardType: TextInputType.number,
+            const SizedBox(height: 20),
+            Text('Grams: ${_selectedGrams.round()}g'),
+            Slider(
+              value: _selectedGrams,
+              min: 0,
+              max: 500,
+              divisions: 100,
+              label: '${_selectedGrams.round()}g',
+              onChanged: (value) {
+                setState(() {
+                  _selectedGrams = value;
+                });
+              },
             ),
           ],
         ),
@@ -286,7 +294,7 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
         final solidFeed = SolidFeed(
           startTime: startTime,
           food: _foodController.text,
-          grams: int.tryParse(_gramsController.text),
+          grams: _selectedGrams.round(),
         );
         Provider.of<HistoryModel>(context, listen: false).addActivity(solidFeed);
         Navigator.of(context).pop();
