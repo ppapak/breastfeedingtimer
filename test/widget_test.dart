@@ -1,12 +1,6 @@
 
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter_test/flutter_test.dart';
+import 'package:myapp/purchase_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'package:myapp/main.dart';
@@ -19,28 +13,37 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
+          ChangeNotifierProvider(create: (context) => ThemeProvider()),
           ChangeNotifierProvider(create: (context) => TimerModel()),
           ChangeNotifierProvider(create: (context) => HistoryModel()),
+          ChangeNotifierProvider(create: (context) => PurchaseProvider()),
         ],
         child: const MyApp(),
       ),
     );
 
-    // Verify that the timer is initially stopped.
-    expect(find.text('0m 0s'), findsNothing);
+    // Let the app settle.
+    await tester.pumpAndSettle();
+
+    // Verify that the timer is initially stopped and the button shows 'L'.
+    expect(find.text('L'), findsOneWidget);
 
     // Tap the left breast button to start the timer.
     await tester.tap(find.text('L'));
     await tester.pump();
 
-    // Verify that the timer is running.
-    expect(find.text('0m 1s'), findsNothing);
+    // Wait for 1 second.
+    await tester.pump(const Duration(seconds: 1));
 
-    // Tap the left breast button again to stop the timer.
-    await tester.tap(find.text('0m 1s'));
+    // Verify that the timer is running and shows the elapsed time.
+    expect(find.text('1s'), findsOneWidget);
+
+    // Tap the button again to stop the timer.
+    await tester.tap(find.text('1s'));
     await tester.pump();
 
-    // Verify that the timer is stopped.
-    expect(find.text('0m 0s'), findsNothing);
+    // Verify that the timer is stopped and the button shows 'L' again.
+    expect(find.text('L'), findsOneWidget);
+    expect(find.text('1s'), findsNothing);
   });
 }
