@@ -353,7 +353,7 @@ class TimerControl extends StatelessWidget {
           CircularProgressIndicator(
             value: percentage / 100,
             strokeWidth: 10,
-            backgroundColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(128),
             valueColor: AlwaysStoppedAnimation<Color>(
               side == BreastSide.left
                   ? Theme.of(context).colorScheme.primary

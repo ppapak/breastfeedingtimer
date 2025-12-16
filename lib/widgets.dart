@@ -188,7 +188,7 @@ class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerP
           onTap: _pickTime,
         ),
         DropdownButtonFormField<int>(
-          value: _selectedDuration,
+          initialValue: _selectedDuration,
           hint: const Text('Duration (minutes)'),
           items: List.generate(61, (index) => index)
               .map((minute) => DropdownMenuItem(
