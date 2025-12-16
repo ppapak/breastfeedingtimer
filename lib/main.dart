@@ -14,6 +14,7 @@ import 'baby_provider.dart';
 import 'settings_page.dart';
 import 'purchase_provider.dart';
 import 'paywall_screen.dart';
+import 'analysis_screen.dart';
 
 void main() {
   runApp(
@@ -275,6 +276,15 @@ class HeaderState extends State<Header> {
         Row(
           children: [
             IconButton(
+              icon: const Icon(Icons.analytics),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AnalysisScreen()),
+                );
+              },
+            ),
+            IconButton(
               icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
               onPressed: () => themeProvider.toggleTheme(),
               tooltip: 'Toggle Theme',
@@ -378,7 +388,7 @@ class TimerControl extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 shape: const CircleBorder(),
                 padding: const EdgeInsets.all(30),
-                backgroundColor: isSelected ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.surface,
+                backgroundColor: isSelected ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.onTertiary,
                 foregroundColor: isSelected ? Theme.of(context).colorScheme.onTertiary : Theme.of(context).colorScheme.onSurface,
                 elevation: 8,
               ),
