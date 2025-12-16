@@ -1,6 +1,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -92,7 +93,9 @@ class InitialScreenState extends State<InitialScreen> {
   @override
   void initState() {
     super.initState();
-    _checkTrialStatus();
+    if (kReleaseMode) {
+      _checkTrialStatus();
+    }
   }
 
   Future<void> _checkTrialStatus() async {
@@ -328,7 +331,7 @@ class TimerControl extends StatelessWidget {
             duration: timer.duration,
             breastSide: side,
           );
-          history.addSession(session);
+          history.addActivity(session);
           timer.stopTimer();
         } else {
           timer.startTimer(side);

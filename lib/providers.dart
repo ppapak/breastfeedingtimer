@@ -38,55 +38,63 @@ class TimerModel with ChangeNotifier {
 }
 
 class HistoryModel with ChangeNotifier {
-  List<FeedSession> _sessions = [];
-  static const _sessionsKey = 'feed_sessions';
+  List<Activity> _activities = [];
+  static const _activitiesKey = 'activities';
 
-  List<FeedSession> get sessions => _sessions;
+  List<Activity> get activities => _activities;
 
   HistoryModel() {
-    loadSessions();
+    loadActivities();
   }
 
-  Future<void> addSession(FeedSession session) async {
-    _sessions.insert(0, session);
-    await saveSessions();
+  Future<void> addActivity(Activity activity) async {
+    _activities.insert(0, activity);
+    await saveActivities();
     notifyListeners();
   }
 
-  Future<void> deleteSession(FeedSession session) async {
-    _sessions.remove(session);
-    await saveSessions();
+  Future<void> deleteActivity(Activity activity) async {
+    _activities.remove(activity);
+    await saveActivities();
     notifyListeners();
   }
 
-  Future<void> loadSessions() async {
+  Future<void> loadActivities() async {
     final prefs = await SharedPreferences.getInstance();
-    final sessionsJson = prefs.getString(_sessionsKey) ?? '[]';
-    final sessionsList = jsonDecode(sessionsJson) as List;
-    _sessions = sessionsList.map((json) => FeedSession.fromJson(json)).toList();
-    _sessions.sort((a, b) => b.startTime.compareTo(a.startTime));
+    final activitiesJson = prefs.getString(_activitiesKey) ?? '[]';
+    final activitiesList = jsonDecode(activitiesJson) as List;
+    _activities = activitiesList.map((json) {
+      if (json['type'] == 'FeedSession') {
+        return FeedSession.fromJson(json);
+      } else if (json['type'] == 'SolidFeed') {
+        return SolidFeed.fromJson(json);
+      } else {
+        throw Exception('Unknown activity type');
+      }
+    }).toList();
+    _activities.sort((a, b) => b.startTime.compareTo(a.startTime));
     notifyListeners();
   }
 
-  Future<void> saveSessions() async {
+  Future<void> saveActivities() async {
     final prefs = await SharedPreferences.getInstance();
-    final sessionsJson = jsonEncode(_sessions.map((s) => s.toJson()).toList());
-    await prefs.setString(_sessionsKey, sessionsJson);
+    final activitiesJson = jsonEncode(_activities.map((a) => a.toJson()).toList());
+    await prefs.setString(_activitiesKey, activitiesJson);
   }
 
   // Analysis Getters
   Duration get timeSinceLastFeed {
-    if (_sessions.isEmpty) {
+    if (_activities.isEmpty) {
       return Duration.zero;
     }
-    return DateTime.now().difference(_sessions.first.startTime);
+    return DateTime.now().difference(_activities.first.startTime);
   }
 
   int get feedsInLast24Hours =>
-      _sessions.where((s) => DateTime.now().difference(s.startTime).inHours < 24).length;
+      _activities.where((a) => a is FeedSession && DateTime.now().difference(a.startTime).inHours < 24).length;
 
   List<FeedSession> get _todayFeeds =>
-      _sessions.where((s) => s.startTime.day == DateTime.now().day && s.startTime.month == DateTime.now().month && s.startTime.year == DateTime.now().year).toList();
+      _activities.whereType<FeedSession>().where((s) => s.startTime.day == DateTime.now().day && s.startTime.month == DateTime.now().month && s.startTime.year == DateTime.now().year).toList();
 
   int get totalTodayFeeds => _todayFeeds.length;
 
