@@ -156,12 +156,15 @@ class HistoryModel with ChangeNotifier {
   }
 
   DateTime? get lastFeedTime {
-    final feedSessions = _activities.whereType<FeedSession>().toList();
-    if (feedSessions.isNotEmpty) {
-      final lastFeed = feedSessions.first;
-      return lastFeed.startTime.add(lastFeed.duration);
+    if (_activities.isEmpty) {
+      return null;
     }
-    return null;
+    final lastActivity = _activities.first;
+    if (lastActivity is FeedSession) {
+      return lastActivity.startTime.add(lastActivity.duration);
+    } else {
+      return lastActivity.startTime;
+    }
   }
 
   Duration get timeSinceLastFeed {
