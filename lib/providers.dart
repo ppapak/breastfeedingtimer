@@ -158,7 +158,8 @@ class HistoryModel with ChangeNotifier {
   DateTime? get lastFeedTime {
     final feedSessions = _activities.whereType<FeedSession>().toList();
     if (feedSessions.isNotEmpty) {
-      return feedSessions.first.startTime;
+      final lastFeed = feedSessions.first;
+      return lastFeed.startTime.add(lastFeed.duration);
     }
     return null;
   }
@@ -172,7 +173,7 @@ class HistoryModel with ChangeNotifier {
 
   int get feedsInLast24Hours {
     final now = DateTime.now();
-    return _activities.whereType<FeedSession>().where((s) => now.difference(s.startTime).inHours < 24).length;
+    return _activities.where((s) => now.difference(s.startTime).inHours < 24).length;
   }
 
   Duration get totalTodayDuration {

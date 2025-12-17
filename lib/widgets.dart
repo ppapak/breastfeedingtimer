@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -343,9 +344,29 @@ class HistoryList extends StatelessWidget {
   }
 }
 
-
-class StatsPanel extends StatelessWidget {
+class StatsPanel extends StatefulWidget {
   const StatsPanel({super.key});
+
+  @override
+  State<StatsPanel> createState() => _StatsPanelState();
+}
+
+class _StatsPanelState extends State<StatsPanel> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -380,11 +401,11 @@ class StatsPanel extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
+                _buildStatItem(context, "Last Feed", formatDuration(history.timeSinceLastFeed), Icons.history),
+                const SizedBox(width: 24),
                 _buildStatItem(context, "Feeds/24h", "${history.feedsInLast24Hours}", Icons.restaurant_menu),
                 const SizedBox(width: 24),
                 _buildStatItem(context, "Total Today", "${history.totalTodayDuration.inMinutes}m", Icons.timer),
-                const SizedBox(width: 24),
-                _buildStatItem(context, "Last Feed", formatDuration(history.timeSinceLastFeed), Icons.history),
                 const SizedBox(width: 24),
                 _buildStatItem(context, "Avg Today", formatAverageDuration(history.averageFeedDurationToday), Icons.timelapse),
                 const SizedBox(width: 24),
