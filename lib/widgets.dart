@@ -81,38 +81,61 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
                 }
               },
             ),
-            ListTile(
-              title: Text('Duration: ${_duration.inMinutes} minutes'),
-              onTap: () async {
-                final pickedDuration = await showDialog<Duration>(
-                  context: context,
-                  builder: (context) => DurationPicker(
-                    initialDuration: _duration,
-                  ),
-                );
-                if (pickedDuration != null) {
-                  setState(() {
-                    _duration = pickedDuration;
-                  });
-                }
+            const SizedBox(height: 16),
+            Text('Duration: ${_duration.inMinutes} minutes'),
+            Slider(
+              value: _duration.inMinutes.toDouble(),
+              min: 1,
+              max: 120,
+              divisions: 119,
+              label: '${_duration.inMinutes} min',
+              onChanged: (value) {
+                setState(() {
+                  _duration = Duration(minutes: value.toInt());
+                });
               },
             ),
-            DropdownButtonFormField<BreastSide>(
-              initialValue: _breastSide,
-              decoration: const InputDecoration(labelText: 'Breast Side'),
-              items: BreastSide.values
-                  .map((side) => DropdownMenuItem(
-                        value: side,
-                        child: Text(side.toString().split('.').last),
-                      ))
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _breastSide = value;
-                  });
-                }
-              },
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _breastSide = BreastSide.left;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(24),
+                    backgroundColor: _breastSide == BreastSide.left
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.surface,
+                    foregroundColor: _breastSide == BreastSide.left
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurface,
+                  ),
+                  child: const Text('L', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _breastSide = BreastSide.right;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(24),
+                    backgroundColor: _breastSide == BreastSide.right
+                        ? Theme.of(context).colorScheme.secondary
+                        : Theme.of(context).colorScheme.surface,
+                    foregroundColor: _breastSide == BreastSide.right
+                        ? Theme.of(context).colorScheme.onSecondary
+                        : Theme.of(context).colorScheme.onSurface,
+                  ),
+                  child: const Text('R', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                ),
+              ],
             ),
           ],
         ),
