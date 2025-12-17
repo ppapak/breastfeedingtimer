@@ -255,7 +255,7 @@ class TimerSection extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildBreastButton(context, BreastSide.left, timer, history),
-          _buildAddButton(context),
+          _buildAddButton(context, timer.isRunning),
           _buildBreastButton(context, BreastSide.right, timer, history),
         ],
       ),
@@ -265,6 +265,7 @@ class TimerSection extends StatelessWidget {
   Widget _buildBreastButton(BuildContext context, BreastSide side,
       TimerModel timer, HistoryModel history) {
     final isSelected = timer.isRunning && timer.currentSide == side;
+    final isDisabled = timer.isRunning && !isSelected;
     const buttonSize = 160.0;
 
     final totalLeft = history.totalDurationForSide(BreastSide.left);
@@ -310,19 +311,21 @@ class TimerSection extends StatelessWidget {
           ),
           Center(
             child: ElevatedButton(
-              onPressed: () {
-                if (timer.isRunning && timer.currentSide == side) {
-                  final session = FeedSession(
-                    startTime: DateTime.now().subtract(timer.duration),
-                    duration: timer.duration,
-                    breastSide: side,
-                  );
-                  history.addActivity(session);
-                  timer.stopTimer();
-                } else {
-                  timer.startTimer(side);
-                }
-              },
+              onPressed: isDisabled
+                  ? null
+                  : () {
+                      if (timer.isRunning && timer.currentSide == side) {
+                        final session = FeedSession(
+                          startTime: DateTime.now().subtract(timer.duration),
+                          duration: timer.duration,
+                          breastSide: side,
+                        );
+                        history.addActivity(session);
+                        timer.stopTimer();
+                      } else {
+                        timer.startTimer(side);
+                      }
+                    },
               style: ElevatedButton.styleFrom(
                 shape: const CircleBorder(),
                 padding: const EdgeInsets.all(40),
@@ -348,12 +351,15 @@ class TimerSection extends StatelessWidget {
     );
   }
 
-  Widget _buildAddButton(BuildContext context) {
+  Widget _buildAddButton(BuildContext context, bool isDisabled) {
     return FloatingActionButton(
-      onPressed: () async {
-        showDialog(
-            context: context, builder: (context) => const ManualEntryDialog());
-      },
+      onPressed: isDisabled
+          ? null
+          : () async {
+              showDialog(
+                  context: context,
+                  builder: (context) => const ManualEntryDialog());
+            },
       elevation: 8,
       child: const Icon(Icons.add, size: 40),
     );
