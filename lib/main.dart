@@ -161,7 +161,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         : const AssetImage('assets/images/icon.png')
                             as ImageProvider,
                   ),
-                  const Icon(Icons.add_a_photo, size: 20),
+                  if (babyProvider.babyPhotoPath == null)
+                    const Icon(Icons.add_a_photo, size: 20),
                 ],
               ),
             ),

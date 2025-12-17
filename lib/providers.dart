@@ -109,7 +109,8 @@ class HistoryModel with ChangeNotifier {
   }
 
   void addActivity(Activity activity) {
-    _activities.insert(0, activity);
+    _activities.add(activity);
+    _activities.sort((a, b) => b.startTime.compareTo(a.startTime));
     saveHistory();
     notifyListeners();
   }
@@ -124,6 +125,7 @@ class HistoryModel with ChangeNotifier {
     final index = _activities.indexOf(oldActivity);
     if (index != -1) {
       _activities[index] = newActivity;
+      _activities.sort((a, b) => b.startTime.compareTo(a.startTime));
       saveHistory();
       notifyListeners();
     }
@@ -148,6 +150,7 @@ class HistoryModel with ChangeNotifier {
         }
         throw Exception('Unknown activity type');
       }).toList();
+      _activities.sort((a, b) => b.startTime.compareTo(a.startTime));
       notifyListeners();
     }
   }
