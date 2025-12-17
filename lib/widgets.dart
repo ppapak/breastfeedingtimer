@@ -17,6 +17,9 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
   late TimeOfDay _timeOfDay;
   late Duration _duration;
   late BreastSide _breastSide;
+  late ActivityType _activityType;
+  late String _food;
+  late int _grams;
 
   @override
   void initState() {
@@ -25,121 +28,41 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
     _duration = const Duration(minutes: 10);
     _breastSide = BreastSide.left;
     _timeOfDay = TimeOfDay.fromDateTime(_startTime);
+    _activityType = ActivityType.feed;
+    _food = 'Formula';
+    _grams = 0;
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Manual Feed Entry'),
+      title: const Text('Manual Entry'),
       content: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              title: Text('Date: ${DateFormat.yMd().format(_startTime)}'),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: () async {
-                final pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: _startTime,
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime.now(),
-                );
-                if (pickedDate != null) {
-                  setState(() {
-                    _startTime = DateTime(
-                      pickedDate.year,
-                      pickedDate.month,
-                      pickedDate.day,
-                      _startTime.hour,
-                      _startTime.minute,
-                    );
-                  });
-                }
-              },
-            ),
-            ListTile(
-              title: Text('Time: ${_timeOfDay.format(context)}'),
-              trailing: const Icon(Icons.access_time),
-              onTap: () async {
-                final pickedTime = await showTimePicker(
-                  context: context,
-                  initialTime: _timeOfDay,
-                );
-                if (pickedTime != null) {
-                  setState(() {
-                    _timeOfDay = pickedTime;
-                    _startTime = DateTime(
-                      _startTime.year,
-                      _startTime.month,
-                      _startTime.day,
-                      pickedTime.hour,
-                      pickedTime.minute,
-                    );
-                  });
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            Text('Duration: ${_duration.inMinutes} minutes'),
-            Slider(
-              value: _duration.inMinutes.toDouble(),
-              min: 1,
-              max: 120,
-              divisions: 119,
-              label: '${_duration.inMinutes} min',
-              onChanged: (value) {
+            SegmentedButton<ActivityType>(
+              segments: const [
+                ButtonSegment(value: ActivityType.feed, label: Text('Feed')),
+                ButtonSegment(value: ActivityType.solid, label: Text('Solid')),
+              ],
+              selected: {_activityType},
+              onSelectionChanged: (newSelection) {
                 setState(() {
-                  _duration = Duration(minutes: value.toInt());
+                  _activityType = newSelection.first;
                 });
               },
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _breastSide = BreastSide.left;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: const CircleBorder(),
-                    padding: const EdgeInsets.all(24),
-                    backgroundColor: _breastSide == BreastSide.left
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.surface,
-                    foregroundColor: _breastSide == BreastSide.left
-                        ? Theme.of(context).colorScheme.onPrimary
-                        : Theme.of(context).colorScheme.onSurface,
-                  ),
-                  child: const Text('L', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _breastSide = BreastSide.right;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: const CircleBorder(),
-                    padding: const EdgeInsets.all(24),
-                    backgroundColor: _breastSide == BreastSide.right
-                        ? Theme.of(context).colorScheme.secondary
-                        : Theme.of(context).colorScheme.surface,
-                    foregroundColor: _breastSide == BreastSide.right
-                        ? Theme.of(context).colorScheme.onSecondary
-                        : Theme.of(context).colorScheme.onSurface,
-                  ),
-                  child: const Text('R', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
+            if (_activityType == ActivityType.feed)
+              ..._buildFeedForm()
+            else
+              ..._buildSolidForm(),
           ],
         ),
       ),
+      actionsAlignment: MainAxisAlignment.center,
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -149,12 +72,21 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               final history = Provider.of<HistoryModel>(context, listen: false);
-              final newSession = FeedSession(
-                startTime: _startTime,
-                duration: _duration,
-                breastSide: _breastSide,
-              );
-              history.addActivity(newSession);
+              if (_activityType == ActivityType.feed) {
+                final newSession = FeedSession(
+                  startTime: _startTime,
+                  duration: _duration,
+                  breastSide: _breastSide,
+                );
+                history.addActivity(newSession);
+              } else {
+                final newSolidFeed = SolidFeed(
+                  startTime: _startTime,
+                  food: _food,
+                  grams: _grams,
+                );
+                history.addActivity(newSolidFeed);
+              }
               Navigator.of(context).pop();
             }
           },
@@ -163,65 +95,145 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
       ],
     );
   }
-}
 
-class DurationPicker extends StatefulWidget {
-  final Duration initialDuration;
-
-  const DurationPicker({super.key, required this.initialDuration});
-
-  @override
-  State<DurationPicker> createState() => _DurationPickerState();
-}
-
-class _DurationPickerState extends State<DurationPicker> {
-  late int _minutes;
-
-  @override
-  void initState() {
-    super.initState();
-    _minutes = widget.initialDuration.inMinutes;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Select Duration'),
-      content: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+  List<Widget> _buildFeedForm() {
+    return [
+      ListTile(
+        title: Text('Date: ${DateFormat.yMd().format(_startTime)}'),
+        trailing: const Icon(Icons.calendar_today),
+        onTap: () async {
+          final pickedDate = await showDatePicker(
+            context: context,
+            initialDate: _startTime,
+            firstDate: DateTime(2000),
+            lastDate: DateTime.now(),
+          );
+          if (pickedDate != null) {
+            setState(() {
+              _startTime = DateTime(
+                pickedDate.year,
+                pickedDate.month,
+                pickedDate.day,
+                _startTime.hour,
+                _startTime.minute,
+              );
+            });
+          }
+        },
+      ),
+      ListTile(
+        title: Text('Time: ${_timeOfDay.format(context)}'),
+        trailing: const Icon(Icons.access_time),
+        onTap: () async {
+          final pickedTime = await showTimePicker(
+            context: context,
+            initialTime: _timeOfDay,
+          );
+          if (pickedTime != null) {
+            setState(() {
+              _timeOfDay = pickedTime;
+              _startTime = DateTime(
+                _startTime.year,
+                _startTime.month,
+                _startTime.day,
+                pickedTime.hour,
+                pickedTime.minute,
+              );
+            });
+          }
+        },
+      ),
+      const SizedBox(height: 16),
+      Text('Duration: ${_duration.inMinutes} minutes'),
+      Slider(
+        value: _duration.inMinutes.toDouble(),
+        min: 1,
+        max: 120,
+        divisions: 119,
+        label: '${_duration.inMinutes} min',
+        onChanged: (value) {
+          setState(() {
+            _duration = Duration(minutes: value.toInt());
+          });
+        },
+      ),
+      const SizedBox(height: 16),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          IconButton(
-            icon: const Icon(Icons.remove),
+          ElevatedButton(
             onPressed: () {
               setState(() {
-                if (_minutes > 0) _minutes--;
+                _breastSide = BreastSide.left;
               });
             },
+            style: ElevatedButton.styleFrom(
+              shape: const CircleBorder(),
+              padding: const EdgeInsets.all(24),
+              backgroundColor: _breastSide == BreastSide.left
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surface,
+              foregroundColor: _breastSide == BreastSide.left
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurface,
+            ),
+            child: const Text('L', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           ),
-          Text('$_minutes min'),
-          IconButton(
-            icon: const Icon(Icons.add),
+          ElevatedButton(
             onPressed: () {
               setState(() {
-                _minutes++;
+                _breastSide = BreastSide.right;
               });
             },
+            style: ElevatedButton.styleFrom(
+              shape: const CircleBorder(),
+              padding: const EdgeInsets.all(24),
+              backgroundColor: _breastSide == BreastSide.right
+                  ? Theme.of(context).colorScheme.secondary
+                  : Theme.of(context).colorScheme.surface,
+              foregroundColor: _breastSide == BreastSide.right
+                  ? Theme.of(context).colorScheme.onSecondary
+                  : Theme.of(context).colorScheme.onSurface,
+            ),
+            child: const Text('R', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(Duration(minutes: _minutes));
-          },
-          child: const Text('OK'),
-        ),
-      ],
-    );
+    ];
+  }
+
+  List<Widget> _buildSolidForm() {
+    return [
+      TextFormField(
+        initialValue: _food,
+        decoration: const InputDecoration(labelText: 'Formula'),
+        onChanged: (value) {
+          setState(() {
+            _food = value;
+          });
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter a food type';
+          }
+          return null;
+        },
+      ),
+      const SizedBox(height: 16),
+      Text('Grams: $_grams'),
+      Slider(
+        value: _grams.toDouble(),
+        min: 0,
+        max: 500,
+        divisions: 50,
+        label: '$_grams g',
+        onChanged: (value) {
+          setState(() {
+            _grams = value.toInt();
+          });
+        },
+      ),
+    ];
   }
 }
 
@@ -262,11 +274,32 @@ class HistoryList extends StatelessWidget {
             ),
           );
         }
+        if (activity is SolidFeed) {
+          return ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Icons.restaurant),
+            ),
+            title: Text('${activity.food} (${activity.grams}g)'),
+            subtitle: Text(DateFormat.yMd().add_jm().format(activity.startTime)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    history.removeActivity(activity);
+                  },
+                ),
+              ],
+            ),
+          );
+        }
         return const SizedBox.shrink(); 
       },
     );
   }
 }
+
 
 class StatsPanel extends StatelessWidget {
   const StatsPanel({super.key});

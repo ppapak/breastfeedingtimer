@@ -1,10 +1,12 @@
+enum ActivityType { feed, solid }
 
 enum BreastSide { left, right }
 
 abstract class Activity {
   final DateTime startTime;
+  final ActivityType type;
 
-  Activity({required this.startTime});
+  Activity({required this.startTime, required this.type});
 
   Map<String, dynamic> toJson();
 }
@@ -17,7 +19,7 @@ class FeedSession extends Activity {
     required super.startTime,
     required this.duration,
     required this.breastSide,
-  });
+  }) : super(type: ActivityType.feed);
 
   factory FeedSession.fromJson(Map<String, dynamic> json) {
     return FeedSession(
@@ -44,7 +46,7 @@ class SolidFeed extends Activity {
     required super.startTime,
     required this.food,
     this.grams,
-  });
+  }) : super(type: ActivityType.solid);
 
   factory SolidFeed.fromJson(Map<String, dynamic> json) {
     return SolidFeed(
