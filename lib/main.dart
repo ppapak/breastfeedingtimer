@@ -32,8 +32,7 @@ class MyApp extends StatelessWidget {
     const Color primarySeedColor = Colors.deepPurple;
 
     final TextTheme appTextTheme = TextTheme(
-      displayLarge:
-          GoogleFonts.oswald(fontSize: 57, fontWeight: FontWeight.bold),
+      displayLarge: GoogleFonts.oswald(fontSize: 57, fontWeight: FontWeight.bold),
       titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
       bodyMedium: GoogleFonts.openSans(fontSize: 14),
     );
@@ -48,8 +47,7 @@ class MyApp extends StatelessWidget {
       appBarTheme: AppBarTheme(
         backgroundColor: primarySeedColor,
         foregroundColor: Colors.white,
-        titleTextStyle:
-            GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
+        titleTextStyle: GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -57,8 +55,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: primarySeedColor,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          textStyle:
-              GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
+          textStyle: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );
@@ -73,8 +70,7 @@ class MyApp extends StatelessWidget {
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.grey[900],
         foregroundColor: Colors.white,
-        titleTextStyle:
-            GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
+        titleTextStyle: GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -82,8 +78,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.deepPurple.shade200,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          textStyle:
-              GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
+          textStyle: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );
@@ -154,8 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: CircleAvatar(
                 backgroundImage: babyProvider.babyPhotoPath != null
                     ? FileImage(File(babyProvider.babyPhotoPath!))
-                    : const AssetImage('assets/images/icon2.png')
-                        as ImageProvider,
+                    : const AssetImage('assets/images/icon.png') as ImageProvider,
               ),
             ),
             const SizedBox(width: 10),
@@ -178,9 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         actions: [
           IconButton(
-            icon: Icon(themeProvider.themeMode == ThemeMode.dark
-                ? Icons.light_mode
-                : Icons.dark_mode),
+            icon: Icon(themeProvider.themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
             onPressed: () => themeProvider.toggleTheme(),
             tooltip: 'Toggle Theme',
           ),
@@ -190,8 +182,7 @@ class _MyHomePageState extends State<MyHomePage> {
               final summary = "Baby's Feeding Summary:\n"
                   "Feeds in last 24h: ${history.feedsInLast24Hours}\n"
                   "Total duration today: ${history.totalTodayDuration.inMinutes} minutes";
-              SharePlus.instance.share(
-                  (summary, subject: 'Baby Feeding Summary') as ShareParams);
+              Share.share(summary, subject: 'Baby Feeding Summary');
             },
             tooltip: 'Share',
           ),
@@ -241,8 +232,7 @@ class TimerSection extends StatelessWidget {
     );
   }
 
-  Widget _buildBreastButton(BuildContext context, BreastSide side,
-      TimerModel timer, HistoryModel history) {
+  Widget _buildBreastButton(BuildContext context, BreastSide side, TimerModel timer, HistoryModel history) {
     final isSelected = timer.isRunning && timer.currentSide == side;
     const buttonSize = 160.0;
 
@@ -260,11 +250,11 @@ class TimerSection extends StatelessWidget {
     }
 
     String formatDuration(Duration d) {
-      if (d.inMinutes > 0) {
-        return "${d.inMinutes}m ${d.inSeconds.remainder(60)}s";
-      } else {
-        return "${d.inSeconds}s";
-      }
+        if (d.inMinutes > 0) {
+            return "${d.inMinutes}m ${d.inSeconds.remainder(60)}s";
+        } else {
+            return "${d.inSeconds}s";
+        }
     }
 
     return SizedBox(
@@ -275,12 +265,9 @@ class TimerSection extends StatelessWidget {
         children: [
           CircularProgressIndicator(
             value: percentage,
-            strokeWidth: 15,
-            strokeAlign: -3,
-            backgroundColor: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest
-                .withAlpha(128),
+            strokeWidth: 10,
+            strokeAlign: -2,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(128),
             valueColor: AlwaysStoppedAnimation<Color>(
               side == BreastSide.left
                   ? Theme.of(context).colorScheme.primary
@@ -305,21 +292,13 @@ class TimerSection extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 shape: const CircleBorder(),
                 padding: const EdgeInsets.all(40),
-                backgroundColor: isSelected
-                    ? Theme.of(context).colorScheme.tertiary
-                    : Theme.of(context).colorScheme.surface,
-                foregroundColor: isSelected
-                    ? Theme.of(context).colorScheme.onTertiary
-                    : Theme.of(context).colorScheme.onSurface,
+                backgroundColor: isSelected ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.surface,
+                foregroundColor: isSelected ? Theme.of(context).colorScheme.onTertiary : Theme.of(context).colorScheme.onSurface,
                 elevation: 8,
               ),
               child: isSelected
-                  ? Text(formatDuration(timer.duration),
-                      style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold))
-                  : Text(side == BreastSide.left ? "L" : "R",
-                      style: const TextStyle(
-                          fontSize: 60, fontWeight: FontWeight.bold)),
+                  ? Text(formatDuration(timer.duration), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold))
+                  : Text(side == BreastSide.left ? "L" : "R", style: const TextStyle(fontSize: 60, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -330,8 +309,7 @@ class TimerSection extends StatelessWidget {
   Widget _buildAddButton(BuildContext context) {
     return FloatingActionButton(
       onPressed: () async {
-        showDialog(
-            context: context, builder: (context) => const ManualEntryDialog());
+        showDialog(context: context, builder: (context) => const ManualEntryDialog());
       },
       elevation: 8,
       child: const Icon(Icons.add, size: 40),
