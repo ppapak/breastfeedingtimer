@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -5,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'models.dart';
 import 'providers.dart';
 import 'widgets.dart';
+import 'settings_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +14,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (context) => BabyProvider()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => TimerModel()),
         ChangeNotifierProvider(create: (context) => HistoryModel()),
@@ -94,23 +97,77 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  late TextEditingController _nameController;
+  final FocusNode _nameFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _nameFocusNode.addListener(_onNameFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _nameFocusNode.removeListener(_onNameFocusChange);
+    _nameFocusNode.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _onNameFocusChange() {
+    if (!_nameFocusNode.hasFocus) {
+      final babyProvider = Provider.of<BabyProvider>(context, listen: false);
+      babyProvider.updateBabyName(_nameController.text);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final history = Provider.of<HistoryModel>(context);
+    final babyProvider = Provider.of<BabyProvider>(context);
+
+    if (_nameController.text != babyProvider.babyName) {
+      _nameController.text = babyProvider.babyName ?? '';
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           children: [
-            CircleAvatar(
-              backgroundImage: AssetImage('assets/images/icon2.png'), 
+            GestureDetector(
+              onTap: () => babyProvider.pickBabyPhoto(),
+              child: CircleAvatar(
+                backgroundImage: babyProvider.babyPhotoPath != null
+                    ? FileImage(File(babyProvider.babyPhotoPath!))
+                    : const AssetImage('assets/images/icon2.png') as ImageProvider,
+              ),
             ),
-            SizedBox(width: 10),
-            Text('Baby Tracker'),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextField(
+                controller: _nameController,
+                focusNode: _nameFocusNode,
+                decoration: const InputDecoration(
+                  hintText: 'Baby Name?',
+                  border: InputBorder.none,
+                ),
+                onTap: () {
+                  if (_nameController.text == 'Baby Name?') {
+                    _nameController.clear();
+                  }
+                },
+              ),
+            ),
           ],
         ),
         actions: [
@@ -125,13 +182,18 @@ class MyHomePage extends StatelessWidget {
               final summary = "Baby's Feeding Summary:\n"
                   "Feeds in last 24h: ${history.feedsInLast24Hours}\n"
                   "Total duration today: ${history.totalTodayDuration.inMinutes} minutes";
-              Share.share(summary);
+              Share.share(summary, subject: 'Baby Feeding Summary');
             },
             tooltip: 'Share',
           ),
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
             tooltip: 'Settings',
           ),
         ],
@@ -155,7 +217,7 @@ class TimerSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final timer = Provider.of<TimerModel>(context);
-    final history = Provider.of<HistoryModel>(context, listen: false);
+    final history = Provider.of<HistoryModel>(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20.0),
@@ -174,6 +236,19 @@ class TimerSection extends StatelessWidget {
     final isSelected = timer.isRunning && timer.currentSide == side;
     const buttonSize = 150.0;
 
+    final totalLeft = history.totalDurationForSide(BreastSide.left);
+    final totalRight = history.totalDurationForSide(BreastSide.right);
+    final totalDuration = totalLeft + totalRight;
+
+    double percentage = 0.0;
+    if (totalDuration.inSeconds > 0) {
+      if (side == BreastSide.left) {
+        percentage = totalLeft.inSeconds / totalDuration.inSeconds;
+      } else {
+        percentage = totalRight.inSeconds / totalDuration.inSeconds;
+      }
+    }
+
     String formatDuration(Duration d) {
         if (d.inMinutes > 0) {
             return "${d.inMinutes}m ${d.inSeconds.remainder(60)}s";
@@ -189,8 +264,8 @@ class TimerSection extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           CircularProgressIndicator(
-            value: 0.5, // Placeholder value
-            strokeWidth: 10,
+            value: percentage,
+            strokeWidth: 15,
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(128),
             valueColor: AlwaysStoppedAnimation<Color>(
               side == BreastSide.left
@@ -215,7 +290,7 @@ class TimerSection extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 shape: const CircleBorder(),
-                padding: const EdgeInsets.all(40),
+                padding: const EdgeInsets.all(30),
                 backgroundColor: isSelected ? Theme.of(context).colorScheme.tertiary : Theme.of(context).colorScheme.surface,
                 foregroundColor: isSelected ? Theme.of(context).colorScheme.onTertiary : Theme.of(context).colorScheme.onSurface,
                 elevation: 8,

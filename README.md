@@ -1,51 +1,32 @@
-# Project Blueprint
+# Baby Tracker App Blueprint
 
 ## Overview
 
-This document outlines the architecture, features, and design of the Breastfeeding Tracker mobile application. The app is designed to help parents track breastfeeding sessions, solid food intake, and monitor their baby's feeding patterns.
+A Flutter application for tracking a baby's feeding sessions. It allows for timing feeds for each breast, manually adding feed entries, and viewing a history of feeding sessions. The app also provides statistics on feeding patterns.
+
+## Style and Design
+
+*   **Theme:** Material 3 with a Deep Purple seed color for both light and dark modes.
+*   **Typography:** Google Fonts Oswald, Roboto, and Open Sans for a clean and modern look.
+*   **Layout:** 
+    *   **AppBar:** Contains a CircleAvatar for an image, the app title, and action buttons for theme toggling, sharing, and settings.
+    *   **Main Body:** Features large, circular buttons for 'L' and 'R' feeds, a central '+' button for manual entries, a statistics panel, and a list of historical entries.
+    *   **Buttons:** ElevatedButton with rounded corners and a consistent color scheme.
 
 ## Features
 
-### Core Functionality
-
-*   **Breastfeeding Timer:** Users can time feeds for each breast (left or right). The timer displays the duration in real-time.
-*   **Manual Entry:** Users can manually log past feeding sessions and solid food intake.
-*   **Activity History:** A chronological list of all feeding activities is displayed on the main screen.
-*   **Statistics Panel:** Key statistics are displayed, including:
+*   **Theme Toggle:** Switch between light and dark modes.
+*   **Timer:** Time feeding sessions for the left and right breast.
+*   **Manual Entry:** Manually add feeding sessions with a date, time, duration, and breast side selector.
+*   **History:** View a list of all past feeding sessions, with options to edit or delete each entry.
+*   **Statistics:** A comprehensive statistics panel displaying:
     *   Feeds in the last 24 hours.
     *   Total feeding duration for the current day.
     *   Time since the last feed.
     *   Average feed duration for today, yesterday, and the last 7 days.
-    *   Percentage of feeds from the left vs. right breast.
 
-### Monetization
+## Current Plan
 
-*   **Subscription Model:** The core tracking features are behind a paywall.
-*   **Free Trial:** A 7-day free trial is offered to new users to allow them to experience the app's full functionality.
-*   **In-App Purchases:** The app uses the `in_app_purchase` package to handle subscriptions.
-
-### Notifications
-
-*   **Feed Reminders:** A background task runs periodically to check the time since the last feed. If it exceeds 5 hours, a local notification is sent to remind the user.
-
-## Architecture
-
-*   **State Management:** The app uses the `provider` package for state management, with `ChangeNotifier` to manage the state of the timer, history, and purchases.
-*   **Data Persistence:** The `shared_preferences` package is used to persist the activity history, subscription status, and trial information locally on the device.
-*   **Background Processing:** The `workmanager` package is used to schedule and run background tasks for sending feed reminders.
-*   **UI:** The app is built with Flutter and follows Material Design principles. It includes a dark mode and uses custom fonts from the `google_fonts` package.
-
-## Code Structure
-
-*   `lib/main.dart`: The main entry point of the application, containing the root widget, theme definition, and provider setup.
-*   `lib/providers.dart`: Contains the `ChangeNotifier` classes (`TimerModel`, `HistoryModel`) that manage the application's state.
-*   `lib/models.dart`: Defines the data models for `Activity`, `FeedSession`, and `SolidFeed`.
-*   `lib/widgets.dart`: Contains reusable UI components, such as the `StatsPanel` and `ManualEntryDialog`.
-*   `lib/purchase_provider.dart`: Manages the in-app purchase logic, including product loading, subscription status, and handling purchases.
-*   `lib/paywall_screen.dart`: A screen that is displayed to non-subscribed users, prompting them to start a trial or purchase a subscription.
-*   `lib/notification_service.dart`: A service class to handle the creation and display of local notifications.
-
-## Testing
-
-*   `test/widget_test.dart`: Contains widget tests for the main application UI, ensuring that core functionality like the timer works as expected.
-
+- The layout has been updated as per the user's request.
+- All analysis errors have been resolved.
+- The next step is to implement the edit functionality for the history list entries.

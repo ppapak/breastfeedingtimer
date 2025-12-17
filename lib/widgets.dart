@@ -5,9 +5,7 @@ import 'models.dart';
 import 'providers.dart';
 
 class ManualEntryDialog extends StatefulWidget {
-  final FeedSession? sessionToEdit;
-
-  const ManualEntryDialog({super.key, this.sessionToEdit});
+  const ManualEntryDialog({super.key});
 
   @override
   State<ManualEntryDialog> createState() => _ManualEntryDialogState();
@@ -23,22 +21,16 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
   @override
   void initState() {
     super.initState();
-    if (widget.sessionToEdit != null) {
-      _startTime = widget.sessionToEdit!.startTime;
-      _duration = widget.sessionToEdit!.duration;
-      _breastSide = widget.sessionToEdit!.breastSide;
-    } else {
-      _startTime = DateTime.now();
-      _duration = const Duration(minutes: 10);
-      _breastSide = BreastSide.left;
-    }
+    _startTime = DateTime.now();
+    _duration = const Duration(minutes: 10);
+    _breastSide = BreastSide.left;
     _timeOfDay = TimeOfDay.fromDateTime(_startTime);
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.sessionToEdit == null ? 'Manual Feed Entry' : 'Edit Feed Entry'),
+      title: const Text('Manual Feed Entry'),
       content: Form(
         key: _formKey,
         child: Column(
@@ -139,11 +131,7 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
                 duration: _duration,
                 breastSide: _breastSide,
               );
-              if (widget.sessionToEdit != null) {
-                history.updateActivity(widget.sessionToEdit!, newSession);
-              } else {
-                history.addActivity(newSession);
-              }
+              history.addActivity(newSession);
               Navigator.of(context).pop();
             }
           },
@@ -235,15 +223,6 @@ class HistoryList extends StatelessWidget {
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => ManualEntryDialog(sessionToEdit: activity),
-                    );
-                  },
-                ),
                 IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () {

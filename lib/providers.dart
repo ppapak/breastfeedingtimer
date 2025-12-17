@@ -3,6 +3,44 @@ import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'models.dart';
+import 'package:image_picker/image_picker.dart';
+
+class BabyProvider with ChangeNotifier {
+  String? _babyName;
+  String? _babyPhotoPath;
+
+  String? get babyName => _babyName;
+  String? get babyPhotoPath => _babyPhotoPath;
+
+  BabyProvider() {
+    loadBabyInfo();
+  }
+
+  Future<void> updateBabyName(String name) async {
+    _babyName = name;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('babyName', name);
+    notifyListeners();
+  }
+
+  Future<void> pickBabyPhoto() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      _babyPhotoPath = pickedFile.path;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('babyPhotoPath', _babyPhotoPath!);
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadBabyInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    _babyName = prefs.getString('babyName');
+    _babyPhotoPath = prefs.getString('babyPhotoPath');
+    notifyListeners();
+  }
+}
 
 class ThemeProvider with ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
@@ -157,5 +195,12 @@ class HistoryModel with ChangeNotifier {
         final last7DaysFeeds = _activities.whereType<FeedSession>().where((s) => now.difference(s.startTime).inDays < 7).toList();
         if (last7DaysFeeds.isEmpty) return Duration.zero;
         return last7DaysFeeds.map((s) => s.duration).reduce((a, b) => a + b) ~/ last7DaysFeeds.length;
+    }
+
+    Duration totalDurationForSide(BreastSide side) {
+        final now = DateTime.now();
+        final todayActivities = _activities.whereType<FeedSession>().where((s) => now.difference(s.startTime).inHours < 24 && s.startTime.day == now.day && s.breastSide == side);
+        if (todayActivities.isEmpty) return Duration.zero;
+        return todayActivities.map((s) => s.duration).reduce((a, b) => a + b);
     }
 }
