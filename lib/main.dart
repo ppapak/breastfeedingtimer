@@ -221,14 +221,14 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ],
         ),
-        body: const SingleChildScrollView(
-          child: Column(
-            children: [
-              TimerSection(),
-              StatsPanel(),
-              HistoryList(),
-            ],
-          ),
+        body: const Column(
+          children: [
+            TimerSection(),
+            StatsPanel(),
+            Expanded(
+              child: HistoryList(),
+            ),
+          ],
         ),
       ),
     );

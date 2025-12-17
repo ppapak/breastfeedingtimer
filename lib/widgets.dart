@@ -290,8 +290,6 @@ class HistoryList extends StatelessWidget {
     final history = Provider.of<HistoryModel>(context);
 
     return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
       itemCount: history.activities.length,
       itemBuilder: (context, index) {
         final activity = history.activities[index];
