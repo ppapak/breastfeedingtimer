@@ -1,38 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-//import 'package:workmanager/workmanager.dart';
 import 'models.dart';
 import 'providers.dart';
 import 'widgets.dart';
-//import 'notification_service.dart';
-
-/*void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    final history = HistoryModel();
-    await history.loadHistory();
-    final timeSinceLastFeed = DateTime.now().difference(history.lastFeedTime ?? DateTime.now());
-
-    if (timeSinceLastFeed.inHours >= 5) {
-      final notificationService = NotificationService();
-      await notificationService.init();
-      await notificationService.showNotification(
-        'Time for a feed?',
-        'It has been over 5 hours since your last logged feed.',
-      );
-    }
-    return Future.value(true);
-  });
-}*/
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-/*  await Workmanager().initialize(callbackDispatcher);
-  Workmanager().registerPeriodicTask(
-    "1",
-    "checkLastFeed",
-    frequency: const Duration(hours: 1),
-  );*/
 
   runApp(
     MultiProvider(
