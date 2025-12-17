@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primarySeedColor = Colors.deepPurple;
+    const Color primarySeedColor = Color(0xFF6750A4);
 
     final TextTheme appTextTheme = TextTheme(
       displayLarge:
@@ -46,15 +46,15 @@ class MyApp extends StatelessWidget {
       ),
       textTheme: appTextTheme,
       appBarTheme: AppBarTheme(
-        backgroundColor: primarySeedColor,
-        foregroundColor: Colors.white,
-        titleTextStyle:
-            GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        elevation: 0,
+        titleTextStyle: GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: primarySeedColor,
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          backgroundColor: Theme.of(context).colorScheme.primary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           textStyle:
