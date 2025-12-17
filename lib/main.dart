@@ -160,10 +160,12 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: [
                     CircleAvatar(
                       radius: 20,
+                      backgroundColor: babyProvider.babyPhotoPath == null
+                          ? Theme.of(context).colorScheme.surfaceContainerHighest
+                          : Colors.transparent,
                       backgroundImage: babyProvider.babyPhotoPath != null
                           ? FileImage(File(babyProvider.babyPhotoPath!))
-                          : const AssetImage('assets/images/icon.png')
-                              as ImageProvider,
+                          : null,
                     ),
                     if (babyProvider.babyPhotoPath == null)
                       const Icon(Icons.add_a_photo, size: 20),
@@ -202,9 +204,9 @@ class _MyHomePageState extends State<MyHomePage> {
                 final params = ShareParams(
                   title: "Baby's Feeding Summary:\n",
                   text: "Feeds in last 24h: ${history.feedsInLast24Hours}\n"
-                        "Total duration today: ${history.totalTodayDuration.inMinutes} minutes"
+                      "Total duration today: ${history.totalTodayDuration.inMinutes} minutes",
                 );
-                
+
                 SharePlus.instance.share(params);
               },
               tooltip: 'Share',
