@@ -145,85 +145,90 @@ class _MyHomePageState extends State<MyHomePage> {
       _nameController.text = babyProvider.babyName ?? '';
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            GestureDetector(
-              onTap: () => babyProvider.pickBabyPhoto(),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundImage: babyProvider.babyPhotoPath != null
-                        ? FileImage(File(babyProvider.babyPhotoPath!))
-                        : const AssetImage('assets/images/icon.png')
-                            as ImageProvider,
-                  ),
-                  if (babyProvider.babyPhotoPath == null)
-                    const Icon(Icons.add_a_photo, size: 20),
-                ],
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextField(
-                controller: _nameController,
-                focusNode: _nameFocusNode,
-                decoration: const InputDecoration(
-                  hintText: 'Baby Name?',
-                  border: InputBorder.none,
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            children: [
+              GestureDetector(
+                onTap: () => babyProvider.pickBabyPhoto(),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: babyProvider.babyPhotoPath != null
+                          ? FileImage(File(babyProvider.babyPhotoPath!))
+                          : const AssetImage('assets/images/icon.png')
+                              as ImageProvider,
+                    ),
+                    if (babyProvider.babyPhotoPath == null)
+                      const Icon(Icons.add_a_photo, size: 20),
+                  ],
                 ),
-                onTap: () {
-                  if (_nameController.text == 'Baby Name?') {
-                    _nameController.clear();
-                  }
-                },
               ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: TextField(
+                  controller: _nameController,
+                  focusNode: _nameFocusNode,
+                  decoration: const InputDecoration(
+                    hintText: 'Baby Name?',
+                    border: InputBorder.none,
+                  ),
+                  onTap: () {
+                    if (_nameController.text == 'Baby Name?') {
+                      _nameController.clear();
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(themeProvider.themeMode == ThemeMode.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode),
+              onPressed: () => themeProvider.toggleTheme(),
+              tooltip: 'Toggle Theme',
+            ),
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: () {
+                final params = ShareParams(
+                  title: "Baby's Feeding Summary:\n",
+                  text: "Feeds in last 24h: ${history.feedsInLast24Hours}\n"
+                        "Total duration today: ${history.totalTodayDuration.inMinutes} minutes"
+                );
+                
+                SharePlus.instance.share(params);
+              },
+              tooltip: 'Share',
+            ),
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                );
+              },
+              tooltip: 'Settings',
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(themeProvider.themeMode == ThemeMode.dark
-                ? Icons.light_mode
-                : Icons.dark_mode),
-            onPressed: () => themeProvider.toggleTheme(),
-            tooltip: 'Toggle Theme',
+        body: const SingleChildScrollView(
+          child: Column(
+            children: [
+              TimerSection(),
+              StatsPanel(),
+              HistoryList(),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              final params = ShareParams(
-                title: "Baby's Feeding Summary:\n",
-                text: "Feeds in last 24h: ${history.feedsInLast24Hours}\n"
-                      "Total duration today: ${history.totalTodayDuration.inMinutes} minutes"
-              );
-              
-              SharePlus.instance.share(params);
-            },
-            tooltip: 'Share',
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
-              );
-            },
-            tooltip: 'Settings',
-          ),
-        ],
-      ),
-      body: const SingleChildScrollView(
-        child: Column(
-          children: [
-            TimerSection(),
-            StatsPanel(),
-            HistoryList(),
-          ],
         ),
       ),
     );

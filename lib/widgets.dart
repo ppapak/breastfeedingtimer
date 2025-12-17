@@ -204,6 +204,51 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
 
   List<Widget> _buildSolidForm() {
     return [
+      ListTile(
+        title: Text('Date: ${DateFormat.yMd().format(_startTime)}'),
+        trailing: const Icon(Icons.calendar_today),
+        onTap: () async {
+          final pickedDate = await showDatePicker(
+            context: context,
+            initialDate: _startTime,
+            firstDate: DateTime(2000),
+            lastDate: DateTime.now(),
+          );
+          if (pickedDate != null) {
+            setState(() {
+              _startTime = DateTime(
+                pickedDate.year,
+                pickedDate.month,
+                pickedDate.day,
+                _startTime.hour,
+                _startTime.minute,
+              );
+            });
+          }
+        },
+      ),
+      ListTile(
+        title: Text('Time: ${_timeOfDay.format(context)}'),
+        trailing: const Icon(Icons.access_time),
+        onTap: () async {
+          final pickedTime = await showTimePicker(
+            context: context,
+            initialTime: _timeOfDay,
+          );
+          if (pickedTime != null) {
+            setState(() {
+              _timeOfDay = pickedTime;
+              _startTime = DateTime(
+                _startTime.year,
+                _startTime.month,
+                _startTime.day,
+                pickedTime.hour,
+                pickedTime.minute,
+              );
+            });
+          }
+        },
+      ),
       TextFormField(
         initialValue: _food,
         decoration: const InputDecoration(labelText: 'Formula'),
