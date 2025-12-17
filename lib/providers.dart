@@ -1,44 +1,68 @@
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'models.dart';
 
-class TimerModel with ChangeNotifier {
-  Timer? _timer;
-  Duration _duration = Duration.zero;
-  bool _isRunning = false;
-  BreastSide? _currentSide;
+class ThemeProvider with ChangeNotifier {
+  ThemeMode _themeMode = ThemeMode.system;
 
-  Duration get duration => _duration;
+  ThemeMode get themeMode => _themeMode;
+
+  void toggleTheme() {
+    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
+  }
+
+  void setSystemTheme() {
+    _themeMode = ThemeMode.system;
+    notifyListeners();
+  }
+}
+
+class TimerModel with ChangeNotifier {
+  late BreastSide _currentSide;
+  bool _isRunning = false;
+  late Duration _duration;
+  late Ticker _ticker;
+
+  TimerModel() {
+    _duration = Duration.zero;
+    _ticker = Ticker(_tick);
+  }
+
+  BreastSide get currentSide => _currentSide;
   bool get isRunning => _isRunning;
-  BreastSide? get currentSide => _currentSide;
+  Duration get duration => _duration;
 
   void startTimer(BreastSide side) {
-    if (_isRunning) {
-      stopTimer();
-    }
     _currentSide = side;
-    _duration = Duration.zero;
     _isRunning = true;
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _duration += const Duration(seconds: 1);
-      notifyListeners();
-    });
+    _duration = Duration.zero;
+    _ticker.start();
     notifyListeners();
   }
 
   void stopTimer() {
-    _timer?.cancel();
     _isRunning = false;
-    _currentSide = null;
+    _ticker.stop();
     notifyListeners();
+  }
+
+  void _tick(Duration elapsed) {
+    _duration = elapsed;
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
   }
 }
 
 class HistoryModel with ChangeNotifier {
   List<Activity> _activities = [];
-  static const _activitiesKey = 'activities';
 
   List<Activity> get activities => _activities;
 
@@ -46,124 +70,92 @@ class HistoryModel with ChangeNotifier {
     loadHistory();
   }
 
-  DateTime? get lastFeedTime => _activities.isNotEmpty ? _activities.first.startTime : null;
-
-  Future<void> addActivity(Activity activity) async {
+  void addActivity(Activity activity) {
     _activities.insert(0, activity);
-    await saveActivities();
+    saveHistory();
     notifyListeners();
   }
 
-  Future<void> deleteActivity(Activity activity) async {
+  void removeActivity(Activity activity) {
     _activities.remove(activity);
-    await saveActivities();
+    saveHistory();
     notifyListeners();
+  }
+
+  void updateActivity(Activity oldActivity, Activity newActivity) {
+    final index = _activities.indexOf(oldActivity);
+    if (index != -1) {
+      _activities[index] = newActivity;
+      saveHistory();
+      notifyListeners();
+    }
+  }
+
+  Future<void> saveHistory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> activityJson = _activities.map((a) => jsonEncode(a.toJson())).toList();
+    await prefs.setStringList('history', activityJson);
   }
 
   Future<void> loadHistory() async {
     final prefs = await SharedPreferences.getInstance();
-    final activitiesJson = prefs.getString(_activitiesKey) ?? '[]';
-    final activitiesList = jsonDecode(activitiesJson) as List;
-    _activities = activitiesList.map((json) {
-      if (json['type'] == 'FeedSession') {
-        return FeedSession.fromJson(json);
-      } else if (json['type'] == 'SolidFeed') {
-        return SolidFeed.fromJson(json);
-      } else {
-        throw Exception('Unknown activity type');
+    final List<String>? activityJson = prefs.getStringList('history');
+    if (activityJson != null) {
+      _activities = activityJson.map((json) {
+        final map = jsonDecode(json);
+        return FeedSession.fromJson(map);
+      }).toList();
+      notifyListeners();
+    }
+  }
+
+  DateTime? get lastFeedTime {
+      final feedSessions = _activities.whereType<FeedSession>().toList();
+      if (feedSessions.isNotEmpty) {
+          return feedSessions.first.startTime;
       }
-    }).toList();
-    _activities.sort((a, b) => b.startTime.compareTo(a.startTime));
-    notifyListeners();
+      return null;
   }
 
-  Future<void> saveActivities() async {
-    final prefs = await SharedPreferences.getInstance();
-    final activitiesJson = jsonEncode(_activities.map((a) => a.toJson()).toList());
-    await prefs.setString(_activitiesKey, activitiesJson);
-  }
-
-  // Analysis Getters
   Duration get timeSinceLastFeed {
-    if (_activities.isEmpty) {
-      return Duration.zero;
+    if (lastFeedTime != null) {
+        return DateTime.now().difference(lastFeedTime!);
     }
-    return DateTime.now().difference(_activities.first.startTime);
+    return Duration.zero;
   }
 
-  int get feedsInLast24Hours =>
-      _activities.where((a) => a is FeedSession && DateTime.now().difference(a.startTime).inHours < 24).length;
-
-  List<FeedSession> get _todayFeeds =>
-      _activities.whereType<FeedSession>().where((s) => s.startTime.day == DateTime.now().day && s.startTime.month == DateTime.now().month && s.startTime.year == DateTime.now().year).toList();
-
-  int get totalTodayFeeds => _todayFeeds.length;
-
-  Duration get totalTodayDuration =>
-      _todayFeeds.fold<Duration>(Duration.zero, (prev, s) => prev + s.duration);
-
-  double get leftBreastPercentage {
-    if (_todayFeeds.isEmpty) return 0;
-    final leftCount = _todayFeeds.where((s) => s.breastSide == BreastSide.left).length;
-    return (leftCount / _todayFeeds.length) * 100;
-  }
-
-  double get rightBreastPercentage {
-    if (_todayFeeds.isEmpty) return 0;
-    final rightCount = _todayFeeds.where((s) => s.breastSide == BreastSide.right).length;
-    return (rightCount / _todayFeeds.length) * 100;
-  }
-
-  // Average feed duration today
-  Duration get averageFeedDurationToday {
-    final todayFeeds = _activities.whereType<FeedSession>().where((s) {
-      final now = DateTime.now();
-      return s.startTime.year == now.year &&
-          s.startTime.month == now.month &&
-          s.startTime.day == now.day;
-    }).toList();
-
-    if (todayFeeds.isEmpty) {
-      return Duration.zero;
+    int get feedsInLast24Hours {
+        final now = DateTime.now();
+        return _activities.whereType<FeedSession>().where((s) => now.difference(s.startTime).inHours < 24).length;
     }
 
-    final totalDuration =
-        todayFeeds.fold<Duration>(Duration.zero, (prev, s) => prev + s.duration);
-    return totalDuration ~/ todayFeeds.length;
-  }
-
-  // Average feed duration yesterday
-  Duration get averageFeedDurationYesterday {
-    final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    final yesterdayFeeds = _activities.whereType<FeedSession>().where((s) {
-      return s.startTime.year == yesterday.year &&
-          s.startTime.month == yesterday.month &&
-          s.startTime.day == yesterday.day;
-    }).toList();
-
-    if (yesterdayFeeds.isEmpty) {
-      return Duration.zero;
+    Duration get totalTodayDuration {
+        final now = DateTime.now();
+        final todayActivities = _activities.whereType<FeedSession>().where((s) => now.difference(s.startTime).inHours < 24 && s.startTime.day == now.day);
+        if (todayActivities.isEmpty) return Duration.zero;
+        return todayActivities.map((s) => s.duration).reduce((a, b) => a + b);
     }
 
-    final totalDuration = yesterdayFeeds.fold<Duration>(
-        Duration.zero, (prev, s) => prev + s.duration);
-    return totalDuration ~/ yesterdayFeeds.length;
-  }
-
-  // Average feed duration in the last 7 days
-  Duration get averageFeedDurationLast7Days {
-    final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
-    final last7DaysFeeds = _activities
-        .whereType<FeedSession>()
-        .where((s) => s.startTime.isAfter(sevenDaysAgo))
-        .toList();
-
-    if (last7DaysFeeds.isEmpty) {
-      return Duration.zero;
+    Duration get averageFeedDurationToday {
+        final now = DateTime.now();
+        final todayFeeds = _activities.whereType<FeedSession>().where((s) => now.difference(s.startTime).inHours < 24 && s.startTime.day == now.day).toList();
+        if (todayFeeds.isEmpty) return Duration.zero;
+        return todayFeeds.map((s) => s.duration).reduce((a, b) => a + b) ~/ todayFeeds.length;
     }
 
-    final totalDuration = last7DaysFeeds.fold<Duration>(
-        Duration.zero, (prev, s) => prev + s.duration);
-    return totalDuration ~/ last7DaysFeeds.length;
-  }
+    Duration get averageFeedDurationYesterday {
+        final now = DateTime.now();
+        final yesterday = now.subtract(const Duration(days: 1));
+        final yesterdayFeeds = _activities.whereType<FeedSession>().where((s) => s.startTime.day == yesterday.day && s.startTime.month == yesterday.month && s.startTime.year == yesterday.year).toList();
+        if (yesterdayFeeds.isEmpty) return Duration.zero;
+        return yesterdayFeeds.map((s) => s.duration).reduce((a, b) => a + b) ~/ yesterdayFeeds.length;
+    }
+
+
+    Duration get averageFeedDurationLast7Days {
+        final now = DateTime.now();
+        final last7DaysFeeds = _activities.whereType<FeedSession>().where((s) => now.difference(s.startTime).inDays < 7).toList();
+        if (last7DaysFeeds.isEmpty) return Duration.zero;
+        return last7DaysFeeds.map((s) => s.duration).reduce((a, b) => a + b) ~/ last7DaysFeeds.length;
+    }
 }

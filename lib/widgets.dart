@@ -1,10 +1,218 @@
-
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
+import 'package:intl/intl.dart';
 import 'models.dart';
 import 'providers.dart';
+
+class ManualEntryDialog extends StatefulWidget {
+  final FeedSession? sessionToEdit;
+
+  const ManualEntryDialog({super.key, this.sessionToEdit});
+
+  @override
+  State<ManualEntryDialog> createState() => _ManualEntryDialogState();
+}
+
+class _ManualEntryDialogState extends State<ManualEntryDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late DateTime _startTime;
+  late TimeOfDay _timeOfDay;
+  late Duration _duration;
+  late BreastSide _breastSide;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.sessionToEdit != null) {
+      _startTime = widget.sessionToEdit!.startTime;
+      _duration = widget.sessionToEdit!.duration;
+      _breastSide = widget.sessionToEdit!.breastSide;
+    } else {
+      _startTime = DateTime.now();
+      _duration = const Duration(minutes: 10);
+      _breastSide = BreastSide.left;
+    }
+    _timeOfDay = TimeOfDay.fromDateTime(_startTime);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.sessionToEdit == null ? 'Manual Feed Entry' : 'Edit Feed Entry'),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text('Date: ${DateFormat.yMd().format(_startTime)}'),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: () async {
+                final pickedDate = await showDatePicker(
+                  context: context,
+                  initialDate: _startTime,
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime.now(),
+                );
+                if (pickedDate != null) {
+                  setState(() {
+                    _startTime = DateTime(
+                      pickedDate.year,
+                      pickedDate.month,
+                      pickedDate.day,
+                      _startTime.hour,
+                      _startTime.minute,
+                    );
+                  });
+                }
+              },
+            ),
+            ListTile(
+              title: Text('Time: ${_timeOfDay.format(context)}'),
+              trailing: const Icon(Icons.access_time),
+              onTap: () async {
+                final pickedTime = await showTimePicker(
+                  context: context,
+                  initialTime: _timeOfDay,
+                );
+                if (pickedTime != null) {
+                  setState(() {
+                    _timeOfDay = pickedTime;
+                    _startTime = DateTime(
+                      _startTime.year,
+                      _startTime.month,
+                      _startTime.day,
+                      pickedTime.hour,
+                      pickedTime.minute,
+                    );
+                  });
+                }
+              },
+            ),
+            ListTile(
+              title: Text('Duration: ${_duration.inMinutes} minutes'),
+              onTap: () async {
+                final pickedDuration = await showDialog<Duration>(
+                  context: context,
+                  builder: (context) => DurationPicker(
+                    initialDuration: _duration,
+                  ),
+                );
+                if (pickedDuration != null) {
+                  setState(() {
+                    _duration = pickedDuration;
+                  });
+                }
+              },
+            ),
+            DropdownButtonFormField<BreastSide>(
+              initialValue: _breastSide,
+              decoration: const InputDecoration(labelText: 'Breast Side'),
+              items: BreastSide.values
+                  .map((side) => DropdownMenuItem(
+                        value: side,
+                        child: Text(side.toString().split('.').last),
+                      ))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _breastSide = value;
+                  });
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            if (_formKey.currentState!.validate()) {
+              final history = Provider.of<HistoryModel>(context, listen: false);
+              final newSession = FeedSession(
+                startTime: _startTime,
+                duration: _duration,
+                breastSide: _breastSide,
+              );
+              if (widget.sessionToEdit != null) {
+                history.updateActivity(widget.sessionToEdit!, newSession);
+              } else {
+                history.addActivity(newSession);
+              }
+              Navigator.of(context).pop();
+            }
+          },
+          child: const Text('Save'),
+        ),
+      ],
+    );
+  }
+}
+
+class DurationPicker extends StatefulWidget {
+  final Duration initialDuration;
+
+  const DurationPicker({super.key, required this.initialDuration});
+
+  @override
+  State<DurationPicker> createState() => _DurationPickerState();
+}
+
+class _DurationPickerState extends State<DurationPicker> {
+  late int _minutes;
+
+  @override
+  void initState() {
+    super.initState();
+    _minutes = widget.initialDuration.inMinutes;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Select Duration'),
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.remove),
+            onPressed: () {
+              setState(() {
+                if (_minutes > 0) _minutes--;
+              });
+            },
+          ),
+          Text('$_minutes min'),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              setState(() {
+                _minutes++;
+              });
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(Duration(minutes: _minutes));
+          },
+          child: const Text('OK'),
+        ),
+      ],
+    );
+  }
+}
 
 class HistoryList extends StatelessWidget {
   const HistoryList({super.key});
@@ -12,323 +220,110 @@ class HistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final history = Provider.of<HistoryModel>(context);
-    final activities = history.activities;
-
-    if (activities.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(20.0),
-          child: Text('No activities recorded yet.', style: TextStyle(fontSize: 16)),
-        ),
-      );
-    }
 
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: activities.length,
+      itemCount: history.activities.length,
       itemBuilder: (context, index) {
-        final activity = activities[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Dismissible(
-            key: Key(activity.startTime.toString()),
-            direction: DismissDirection.endToStart,
-            onDismissed: (direction) {
-              history.deleteActivity(activity);
-              ScaffoldMessenger.of(context)
-                ..removeCurrentSnackBar()
-                ..showSnackBar(
-                  const SnackBar(content: Text('Activity deleted')),
-                );
-            },
-            background: Container(
-              decoration: BoxDecoration(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Align(
-                alignment: Alignment.centerRight,
-                child: Padding(
-                  padding: EdgeInsets.only(right: 20.0),
-                  child: Icon(Icons.delete, color: Colors.white),
+        final activity = history.activities[index];
+        if (activity is FeedSession) {
+          return ListTile(
+            leading: Icon(activity.breastSide == BreastSide.left ? Icons.looks_one : Icons.looks_two, color: Theme.of(context).colorScheme.primary),
+            title: Text('${activity.duration.inMinutes} min feed'),
+            subtitle: Text(DateFormat.yMd().add_jm().format(activity.startTime)),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ManualEntryDialog(sessionToEdit: activity),
+                    );
+                  },
                 ),
-              ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    history.removeActivity(activity);
+                  },
+                ),
+              ],
             ),
-            child: _buildActivityTile(context, activity),
-          ),
-        );
+          );
+        }
+        return const SizedBox.shrink(); 
       },
     );
   }
-
-  Widget _buildActivityTile(BuildContext context, Activity activity) {
-    if (activity is FeedSession) {
-      return ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.secondary,
-          child: Text(
-            activity.breastSide == BreastSide.left ? "L" : "R",
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        ),
-        title: Text(
-          "${activity.duration.inMinutes} min duration",
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18),
-        ),
-        subtitle: Text(
-          DateFormat.yMMMMd().add_jm().format(activity.startTime),
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      );
-    } else if (activity is SolidFeed) {
-      return ListTile(
-        leading: const CircleAvatar(
-          backgroundColor: Colors.orange,
-          child: Icon(Icons.restaurant, color: Colors.white),
-        ),
-        title: Text(
-          activity.food,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18),
-        ),
-        subtitle: Text(
-          activity.grams != null
-              ? '${activity.grams}g - ${DateFormat.yMMMMd().add_jm().format(activity.startTime)}'
-              : DateFormat.yMMMMd().add_jm().format(activity.startTime),
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      );
-    } else {
-      return const SizedBox();
-    }
-  }
 }
 
-class ManualEntryDialog extends StatefulWidget {
-  const ManualEntryDialog({super.key});
-
-  @override
-  ManualEntryDialogState createState() => ManualEntryDialogState();
-}
-
-class ManualEntryDialogState extends State<ManualEntryDialog> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
-
-  // Breastfeeding state
-  double _selectedDuration = 15.0;
-  BreastSide _selectedSide = BreastSide.left;
-
-  // Solid food state
-  final TextEditingController _foodController = TextEditingController(text: 'Formula');
-  double _selectedGrams = 50.0;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _foodController.dispose();
-    super.dispose();
-  }
+class StatsPanel extends StatelessWidget {
+  const StatsPanel({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Manual Entry'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TabBar(
-              controller: _tabController,
-              tabs: const [
-                Tab(text: 'Breastfeeding'),
-                Tab(text: 'Solid Food'),
-              ],
-            ),
-            Flexible(
-              child: SizedBox(
-                height: 300,
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildBreastfeedingForm(),
-                    _buildSolidFoodForm(),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        ElevatedButton(
-          onPressed: _saveEntry,
-          child: const Text('Save'),
-        ),
-      ],
-    );
-  }
+    final history = Provider.of<HistoryModel>(context);
 
-  Widget _buildBreastfeedingForm() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Column(
-          children: [
-            ListTile(
-              title: Text('Date: ${DateFormat.yMd().format(_selectedDate)}'),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: _pickDate,
-            ),
-            ListTile(
-              title: Text('Time: ${_selectedTime.format(context)}'),
-              trailing: const Icon(Icons.access_time),
-              onTap: _pickTime,
-            ),
-            const SizedBox(height: 20),
-            Text('Duration: ${_selectedDuration.round()} minutes'),
-            Slider(
-              value: _selectedDuration,
-              min: 0,
-              max: 60,
-              divisions: 60,
-              label: '${_selectedDuration.round()} min',
-              onChanged: (value) {
-                setState(() {
-                  _selectedDuration = value;
-                });
-              },
-            ),
-            const SizedBox(height: 20),
-            ToggleButtons(
-              isSelected: [_selectedSide == BreastSide.left, _selectedSide == BreastSide.right],
-              onPressed: (index) {
-                setState(() {
-                  _selectedSide = index == 0 ? BreastSide.left : BreastSide.right;
-                });
-              },
-              borderRadius: BorderRadius.circular(8),
-              children: const [
-                Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('Left')),
-                Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('Right')),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSolidFoodForm() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Column(
-          children: [
-            ListTile(
-              title: Text('Date: ${DateFormat.yMd().format(_selectedDate)}'),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: _pickDate,
-            ),
-            ListTile(
-              title: Text('Time: ${_selectedTime.format(context)}'),
-              trailing: const Icon(Icons.access_time),
-              onTap: _pickTime,
-            ),
-            TextFormField(
-              controller: _foodController,
-              decoration: const InputDecoration(labelText: 'Food'),
-            ),
-            const SizedBox(height: 20),
-            Text('Grams: ${_selectedGrams.round()}g'),
-            Slider(
-              value: _selectedGrams,
-              min: 0,
-              max: 500,
-              divisions: 100,
-              label: '${_selectedGrams.round()}g',
-              onChanged: (value) {
-                setState(() {
-                  _selectedGrams = value;
-                });
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _saveEntry() {
-    final startTime = DateTime(
-      _selectedDate.year,
-      _selectedDate.month,
-      _selectedDate.day,
-      _selectedTime.hour,
-      _selectedTime.minute,
-    );
-
-    if (_tabController.index == 0) {
-      // Breastfeeding
-      final session = FeedSession(
-        startTime: startTime,
-        duration: Duration(minutes: _selectedDuration.round()),
-        breastSide: _selectedSide,
-      );
-      Provider.of<HistoryModel>(context, listen: false).addActivity(session);
-      Navigator.of(context).pop();
-    } else {
-      // Solid Food
-      if (_foodController.text.isNotEmpty) {
-        final solidFeed = SolidFeed(
-          startTime: startTime,
-          food: _foodController.text,
-          grams: _selectedGrams.round(),
-        );
-        Provider.of<HistoryModel>(context, listen: false).addActivity(solidFeed);
-        Navigator.of(context).pop();
+    String formatDuration(Duration d) {
+      if (d.inHours > 0) {
+        return "${d.inHours}h ${d.inMinutes.remainder(60)}m";
+      } else if (d.inMinutes > 0) {
+        return "${d.inMinutes}m";
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a food')),
-        );
+        return "${d.inSeconds}s";
       }
     }
+
+    String formatAverageDuration(Duration d) {
+      if (d == Duration.zero) return '0m 0s';
+      final minutes = d.inMinutes;
+      final seconds = d.inSeconds.remainder(60);
+      return '${minutes}m ${seconds}s';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem(context, "Feeds/24h", "${history.feedsInLast24Hours}", Icons.restaurant_menu),
+                const SizedBox(width: 24),
+                _buildStatItem(context, "Total Today", "${history.totalTodayDuration.inMinutes}m", Icons.timer),
+                const SizedBox(width: 24),
+                _buildStatItem(context, "Last Feed", formatDuration(history.timeSinceLastFeed), Icons.history),
+                const SizedBox(width: 24),
+                _buildStatItem(context, "Avg Today", formatAverageDuration(history.averageFeedDurationToday), Icons.timelapse),
+                const SizedBox(width: 24),
+                _buildStatItem(context, "Avg Yesterday", formatAverageDuration(history.averageFeedDurationYesterday), Icons.timelapse),
+                const SizedBox(width: 24),
+                _buildStatItem(context, "Avg Last 7 Days", formatAverageDuration(history.averageFeedDurationLast7Days), Icons.timelapse),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
-  Future<void> _pickDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+  Widget _buildStatItem(BuildContext context, String label, String value, IconData icon) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
+        const SizedBox(height: 2),
+        Text(value, style: Theme.of(context).textTheme.titleLarge),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
+      ],
     );
-    if (date != null) {
-      setState(() {
-        _selectedDate = date;
-      });
-    }
-  }
-
-  Future<void> _pickTime() async {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
-    if (time != null) {
-      setState(() {
-        _selectedTime = time;
-      });
-    }
   }
 }
