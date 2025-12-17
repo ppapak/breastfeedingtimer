@@ -1,6 +1,5 @@
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:myapp/purchase_provider.dart';
 import 'package:provider/provider.dart';
 
 import 'package:myapp/main.dart';
@@ -16,7 +15,6 @@ void main() {
           ChangeNotifierProvider(create: (context) => ThemeProvider()),
           ChangeNotifierProvider(create: (context) => TimerModel()),
           ChangeNotifierProvider(create: (context) => HistoryModel()),
-          ChangeNotifierProvider(create: (context) => PurchaseProvider()),
         ],
         child: const MyApp(),
       ),

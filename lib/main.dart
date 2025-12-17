@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'models.dart';
 import 'providers.dart';
 import 'widgets.dart';
-import 'purchase_provider.dart';
 //import 'notification_service.dart';
 
 /*void callbackDispatcher() {
@@ -42,7 +40,6 @@ void main() async {
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => TimerModel()),
         ChangeNotifierProvider(create: (context) => HistoryModel()),
-        ChangeNotifierProvider(create: (context) => PurchaseProvider()),
       ],
       child: const MyApp(),
     ),
@@ -146,9 +143,6 @@ class MyHomePage extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final timer = Provider.of<TimerModel>(context);
     final history = Provider.of<HistoryModel>(context);
-    final purchaseProvider = Provider.of<PurchaseProvider>(context);
-
-    final isSubscribed = kDebugMode || purchaseProvider.isSubscribed;
 
     return Scaffold(
       appBar: AppBar(
@@ -169,23 +163,20 @@ class MyHomePage extends StatelessWidget {
       body: Column(
         children: [
           const StatsPanel(),
-          if (isSubscribed)
-            Expanded(
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildBreastButton(context, BreastSide.left, timer, history),
-                    _buildBreastButton(context, BreastSide.right, timer, history),
-                  ],
-                ),
+          Expanded(
+            child: Center(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildBreastButton(context, BreastSide.left, timer, history),
+                  _buildBreastButton(context, BreastSide.right, timer, history),
+                ],
               ),
-            )
-          else
-            const Paywall(),
+            ),
+          )
         ],
       ),
-      floatingActionButton: isSubscribed ? _buildAddButton(context) : null,
+      floatingActionButton: _buildAddButton(context),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: const BottomAppBar(
         shape: CircularNotchedRectangle(),
@@ -331,43 +322,6 @@ class StatsPanel extends StatelessWidget {
         Text(value, style: Theme.of(context).textTheme.titleLarge),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
-    );
-  }
-}
-
-class Paywall extends StatelessWidget {
-  const Paywall({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final purchaseProvider = Provider.of<PurchaseProvider>(context);
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (purchaseProvider.isTrialAvailable)
-            ElevatedButton(
-              onPressed: () {
-                purchaseProvider.startTrial();
-              },
-              child: const Text('Start 7-Day Free Trial'),
-            )
-          else
-            ElevatedButton(
-              onPressed: () {
-                purchaseProvider.purchaseSubscription();
-              },
-              child: const Text('Subscribe Weekly'),
-            ),
-          const SizedBox(height: 20),
-          const Text(
-            'Subscribe to access all features',
-            style: TextStyle(fontSize: 18),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
     );
   }
 }
