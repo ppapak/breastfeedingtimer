@@ -2,14 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:workmanager/workmanager.dart';
+//import 'package:workmanager/workmanager.dart';
 import 'models.dart';
 import 'providers.dart';
 import 'widgets.dart';
 import 'purchase_provider.dart';
-import 'notification_service.dart';
+//import 'notification_service.dart';
 
-void callbackDispatcher() {
+/*void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     final history = HistoryModel();
     await history.loadHistory();
@@ -25,16 +25,16 @@ void callbackDispatcher() {
     }
     return Future.value(true);
   });
-}
+}*/
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Workmanager().initialize(callbackDispatcher);
+/*  await Workmanager().initialize(callbackDispatcher);
   Workmanager().registerPeriodicTask(
     "1",
     "checkLastFeed",
     frequency: const Duration(hours: 1),
-  );
+  );*/
 
   runApp(
     MultiProvider(
