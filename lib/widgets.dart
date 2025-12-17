@@ -217,7 +217,13 @@ class HistoryList extends StatelessWidget {
         final activity = history.activities[index];
         if (activity is FeedSession) {
           return ListTile(
-            leading: Icon(activity.breastSide == BreastSide.left ? Icons.looks_one : Icons.looks_two, color: Theme.of(context).colorScheme.primary),
+            leading: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child: Text(
+                activity.breastSide == BreastSide.left ? 'L' : 'R',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
             title: Text('${activity.duration.inMinutes} min feed'),
             subtitle: Text(DateFormat.yMd().add_jm().format(activity.startTime)),
             trailing: Row(
