@@ -33,9 +33,9 @@ class MyApp extends StatelessWidget {
 
     final TextTheme appTextTheme = TextTheme(
       displayLarge:
-          GoogleFonts.oswald(fontSize: 57, fontWeight: FontWeight.bold),
+          GoogleFonts.roboto(fontSize: 57, fontWeight: FontWeight.bold),
       titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
-      bodyMedium: GoogleFonts.openSans(fontSize: 14),
+      bodyMedium: GoogleFonts.roboto(fontSize: 14),
     );
 
     final ThemeData lightTheme = ThemeData(
@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
-        titleTextStyle: GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+        titleTextStyle: GoogleFonts.roboto(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
         backgroundColor: Colors.grey[900],
         foregroundColor: Colors.white,
         titleTextStyle:
-            GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
+            GoogleFonts.roboto(fontSize: 24, fontWeight: FontWeight.bold),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -177,9 +177,13 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: TextField(
                   controller: _nameController,
                   focusNode: _nameFocusNode,
-                  decoration: const InputDecoration(
+                  style: Theme.of(context).appBarTheme.titleTextStyle,
+                  decoration: InputDecoration(
                     hintText: 'Baby Name?',
                     border: InputBorder.none,
+                    hintStyle: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(
+                          color: Theme.of(context).hintColor,
+                        ),
                   ),
                   onTap: () {
                     if (_nameController.text == 'Baby Name?') {
