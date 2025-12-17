@@ -8,18 +8,6 @@
             "name": "breastfeedingtimer",
             "request": "launch",
             "type": "dart"
-        },
-        {
-            "name": "breastfeedingtimer (profile mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "breastfeedingtimer (release mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
         }
     ]
 }
