@@ -16,7 +16,8 @@ class SettingsPage extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const PrivacyPolicyPage()),
+                MaterialPageRoute(
+                    builder: (context) => const PrivacyPolicyPage()),
               );
             },
           ),
@@ -47,23 +48,30 @@ class PrivacyPolicyPage extends StatelessWidget {
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Text('''
-Last updated: 2024-07-25
+Privacy Policy
 
-Your privacy is important to us. It is our policy to respect your privacy regarding any information we may collect from you across our app.
+Last Updated: [Insert Date]
+1. Data Sovereignty
 
-We only ask for personal information when we truly need it to provide a service to you. We collect it by fair and lawful means, with your knowledge and consent. We also let you know why we’re collecting it and how it will be used.
+This app is built on the principle of local-first privacy. We do not operate servers to store your personal information. Every piece of data you create, input, or save stays exclusively on your device.
+2. Zero Collection & Access
 
-We only retain collected information for as long as necessary to provide you with your requested service. What data we store, we’ll protect within commercially acceptable means to prevent loss and theft, as well as unauthorized access, disclosure, copying, use or modification.
+    No Personal Information: We do not collect, track, or request your name, email, location, or any other identifying data.
 
-We don’t share any personally identifying information publicly or with third-parties, except when required to by law.
+    No Tracking: There are no third-party analytics, advertising SDKs, or trackers embedded in this app.
 
-Our app may link to external sites that are not operated by us. Please be aware that we have no control over the content and practices of these sites, and cannot accept responsibility or liability for their respective privacy policies.
+    No Remote Access: We cannot see, access, or recover your data. If you delete the app or lose your device, your data is gone unless you have backed up your device via [e.g., iCloud/Google Drive].
 
-You are free to refuse our request for your personal information, with the understanding that we may be unable to provide you with some of your desired services.
+3. Third-Party Services
+ 
+This app allows you to export your data and you are interacting with third-party services governed by their own privacy policies. We do not control and are not responsible for how those entities handle your data once it leaves your device.
 
-Your continued use of our app will be regarded as acceptance of our practices around privacy and personal information. If you have any questions about how we handle user data and personal information, feel free to contact us.
+4. Data Security
 
-This policy is effective as of 25 July 2024.
+Because your data is never transmitted to us, its security is entirely dependent on the security of your device. We recommend using standard device encryption and passcodes to protect your local information.
+5. Compliance with Law
+
+Since we possess zero user data, we have nothing to provide to law enforcement or government agencies, even if legally compelled. We cannot share what we do not have.
 '''),
       ),
     );
@@ -82,49 +90,43 @@ class TermsOfUsePage extends StatelessWidget {
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Text('''
-Last updated: 2024-07-25
+Terms of Use
 
-**1. Terms**
+1. Acceptance of Terms
 
-By accessing our app, you are agreeing to be bound by these terms of service, all applicable laws and regulations, and agree that you are responsible for compliance with any applicable local laws. If you do not agree with any of these terms, you are prohibited from using or accessing this app. The materials contained in this app are protected by applicable copyright and trademark law.
+By installing and using this app, you agree to be bound by these Terms of Use and all applicable laws. If you do not agree, you are prohibited from using the application and must uninstall it immediately.
+2. Software License
 
-**2. Use License**
+We grant you a limited, non-exclusive, non-transferable license to use this software for [personal/commercial] use. You may not:
 
-Permission is granted to temporarily download one copy of the materials (information or software) on our app for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
+    Reverse engineer, decompile, or attempt to extract the source code of the app.
 
-*   modify or copy the materials;
-*   use the materials for any commercial purpose, or for any public display (commercial or non-commercial);
-*   attempt to decompile or reverse engineer any software contained on our app;
-*   remove any copyright or other proprietary notations from the materials; or
-*   transfer the materials to another person or "mirror" the materials on any other server.
+    Redistribute or "mirror" the software on any other server or platform.
 
-This license shall automatically terminate if you violate any of these restrictions and may be terminated by us at any time. Upon terminating your viewing of these materials or upon the termination of this license, you must destroy any downloaded materials in your possession whether in electronic or printed format.
+    Remove any copyright or proprietary notations from the software.
 
-**3. Disclaimer**
+3. Absolute Data Responsibility (The "Zero-Server" Disclaimer)
 
-The materials on our app are provided on an 'as is' basis. We make no warranties, expressed or implied, and hereby disclaim and negate all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
+You acknowledge that this app is a local-only application.
 
-Further, we do not warrant or make any representations concerning the accuracy, likely results, or reliability of the use of the materials on our app or otherwise relating to such materials or on any sites linked to this app.
+    No Backups: We do not host servers, store your data, or maintain backups.
 
-**4. Limitations**
+    Loss of Access: If you delete the app, lose your device, or experience hardware failure, your data will be permanently lost.
 
-In no event shall we or our suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on our app, even if we or an authorized representative has been notified orally or in writing of the possibility of such damage.
+    User Obligation: You are solely responsible for securing your own data via device-level backups (e.g., iCloud, Google Drive) or manual exports provided within the app.
 
-**5. Accuracy of materials**
+4. Disclaimer of Warranty
 
-The materials appearing on our app could include technical, typographical, or photographic errors. We do not warrant that any of the materials on our app are accurate, complete or current. We may make changes to the materials contained on our app at any time without notice. However we do not make any commitment to update the materials.
+The app is provided "AS IS" and "AS AVAILABLE." We disclaim all warranties, express or implied, including without limitation the warranties of merchantability, fitness for a particular purpose, and non-infringement. We do not warrant that the app will be error-free or that any errors will be corrected.
+5. Limitation of Liability
 
-**6. Links**
+In no event shall we be liable for any damages (including, without limitation, damages for loss of data, loss of profit, or business interruption) arising out of the use or inability to use the app. This applies even if we have been notified of the possibility of such damage.
+6. Accuracy of Functionality
 
-We have not reviewed all of the sites linked to our app and are not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by us of the site. Use of any such linked website is at the user's own risk.
+While we strive for technical accuracy, the software may contain technical, typographical, or logic errors. We do not warrant that any output of the app is accurate, complete, or current. We may make changes to the app at any time without notice but make no commitment to provide updates.
+7. Governing Law
 
-**7. Modifications**
-
-We may revise these terms of service for our app at any time without notice. By using this app you are agreeing to be bound by the then current version of these terms of service.
-
-**8. Governing Law**
-
-These terms and conditions are governed by and construed in accordance with the laws of our state and you irrevocably submit to the exclusive jurisdiction of the courts in that State or location.
+These terms are governed by the laws of Switzerland, and you irrevocably submit to the exclusive jurisdiction of the courts in that location.
 '''),
       ),
     );
