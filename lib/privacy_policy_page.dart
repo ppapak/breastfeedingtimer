@@ -13,21 +13,30 @@ class PrivacyPolicyPage extends StatelessWidget {
         padding: EdgeInsets.all(16.0),
         child: Text(
           '''
-Your privacy is important to us. It is this app's policy to respect your privacy regarding any information we may collect from you throughout our app.
+Privacy Policy
 
-We only ask for personal information when we truly need it to provide a service to you. We collect it by fair and lawful means, with your knowledge and consent. We also let you know why we’re collecting it and how it will be used.
+Last Updated: [Insert Date]
+1. Data Sovereignty
 
-We only retain collected information for as long as a s necessary to provide you with your requested service. What data we store, we’ll protect within commercially acceptable means to prevent loss and theft, as well as unauthorized access, disclosure, copying, use or modification.
+This app is built on the principle of local-first privacy. We do not operate servers to store your personal information. Every piece of data you create, input, or save stays exclusively on your device.
+2. Zero Collection & Access
 
-We don’t share any personally identifying information publicly or with third-parties, except when required to by law.
+    No Personal Information: We do not collect, track, or request your name, email, location, or any other identifying data.
 
-Our app may link to external sites that are not operated by us. Please be aware that we have no control over the content and practices of these sites, and cannot accept responsibility or liability for their respective privacy policies.
+    No Tracking: There are no third-party analytics, advertising SDKs, or trackers embedded in this app.
 
-You are free to refuse our request for your personal information, with the understanding that we may be unable to provide you with some of your desired services.
+    No Remote Access: We cannot see, access, or recover your data. If you delete the app or lose your device, your data is gone unless you have backed up your device via [e.g., iCloud/Google Drive].
 
-Your continued use of our app will be regarded as acceptance of our practices around privacy and personal information. If you have any questions about how we handle user data and personal information, feel free to contact us.
+3. Third-Party Services
+ 
+This app allows you to export your data and you are interacting with third-party services governed by their own privacy policies. We do not control and are not responsible for how those entities handle your data once it leaves your device.
 
-This policy is effective as of 4 December 2023.
+4. Data Security
+
+Because your data is never transmitted to us, its security is entirely dependent on the security of your device. We recommend using standard device encryption and passcodes to protect your local information.
+5. Compliance with Law
+
+Since we possess zero user data, we have nothing to provide to law enforcement or government agencies, even if legally compelled. We cannot share what we do not have.
 ''',
         ),
       ),
