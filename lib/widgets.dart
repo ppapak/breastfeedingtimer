@@ -338,7 +338,7 @@ class HistoryList extends StatelessWidget {
             ),
           );
         }
-        return const SizedBox.shrink(); 
+        return const SizedBox.shrink();
       },
     );
   }
@@ -372,7 +372,9 @@ class _StatsPanelState extends State<StatsPanel> {
   Widget build(BuildContext context) {
     final history = Provider.of<HistoryModel>(context);
 
-    String formatDuration(Duration d) {
+    String formatTimeSince(Duration d) {
+      if (d.isNegative) return '0';
+      if (d.inDays > 7) return '>week';
       if (d.inHours > 0) {
         return "${d.inHours}h ${d.inMinutes.remainder(60)}m";
       } else if (d.inMinutes > 0) {
@@ -401,17 +403,33 @@ class _StatsPanelState extends State<StatsPanel> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildStatItem(context, "Last Feed", formatDuration(history.timeSinceLastFeed), Icons.history),
+                _buildStatItem(
+                    context, "Last Feed", formatTimeSince(history.timeSinceLastFeed), Icons.history),
                 const SizedBox(width: 24),
-                _buildStatItem(context, "Feeds/24h", "${history.feedsInLast24Hours}", Icons.restaurant_menu),
+                _buildStatItem(context, "Feeds/24h",
+                    "${history.feedsInLast24Hours}", Icons.restaurant_menu),
                 const SizedBox(width: 24),
-                _buildStatItem(context, "Total Today", "${history.totalTodayDuration.inMinutes}m", Icons.timer),
+                _buildStatItem(context, "Total Today",
+                    "${history.totalTodayDuration.inMinutes}m", Icons.timer),
                 const SizedBox(width: 24),
-                _buildStatItem(context, "Avg Today", formatAverageDuration(history.averageFeedDurationToday), Icons.timelapse),
+                _buildStatItem(
+                    context,
+                    "Avg Today",
+                    formatAverageDuration(history.averageFeedDurationToday),
+                    Icons.timelapse),
                 const SizedBox(width: 24),
-                _buildStatItem(context, "Avg Yesterday", formatAverageDuration(history.averageFeedDurationYesterday), Icons.timelapse),
+                _buildStatItem(
+                    context,
+                    "Avg Yesterday",
+                    formatAverageDuration(history.averageFeedDurationYesterday),
+                    Icons.timelapse),
                 const SizedBox(width: 24),
-                _buildStatItem(context, "Avg Last 7 Days", formatAverageDuration(history.averageFeedDurationLast7Days), Icons.timelapse),
+                _buildStatItem(
+                    context,
+                    "Avg Last 7 Days",
+                    formatAverageDuration(
+                        history.averageFeedDurationLast7Days),
+                    Icons.timelapse),
               ],
             ),
           ),
@@ -420,7 +438,8 @@ class _StatsPanelState extends State<StatsPanel> {
     );
   }
 
-  Widget _buildStatItem(BuildContext context, String label, String value, IconData icon) {
+  Widget _buildStatItem(
+      BuildContext context, String label, String value, IconData icon) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
