@@ -421,40 +421,49 @@ class _StatsPanelState extends State<StatsPanel> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildStatItem(
-                    context, "Last Feed", formatTimeSince(history.timeSinceLastFeed), Icons.history),
-                const SizedBox(width: 24),
-                _buildStatItem(context, "Feeds/24h",
-                    "${history.feedsInLast24Hours}", Icons.restaurant_menu),
-                const SizedBox(width: 24),
-                _buildStatItem(context, "Total Today",
-                    "${history.totalTodayDuration.inMinutes}m", Icons.timer),
-                const SizedBox(width: 24),
-                _buildStatItem(
-                    context,
-                    "Avg Today",
-                    formatAverageDuration(history.averageFeedDurationToday),
-                    Icons.timelapse),
-                const SizedBox(width: 24),
-                _buildStatItem(
-                    context,
-                    "Avg Yesterday",
-                    formatAverageDuration(history.averageFeedDurationYesterday),
-                    Icons.timelapse),
-                const SizedBox(width: 24),
-                _buildStatItem(
-                    context,
-                    "Avg Last 7 Days",
-                    formatAverageDuration(
-                        history.averageFeedDurationLast7Days),
-                    Icons.timelapse),
-              ],
-            ),
+          child: Column(
+            children: [
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatItem(context, "Last Feed",
+                        formatTimeSince(history.timeSinceLastFeed), Icons.history),
+                    const SizedBox(width: 24),
+                    _buildStatItem(context, "Feeds/24h",
+                        "${history.feedsInLast24Hours}", Icons.restaurant_menu),
+                    const SizedBox(width: 24),
+                    _buildStatItem(context, "Total Today",
+                        "${history.totalTodayDuration.inMinutes}m", Icons.timer),
+                    const SizedBox(width: 24),
+                    _buildStatItem(
+                        context,
+                        "Avg Today",
+                        formatAverageDuration(history.averageFeedDurationToday),
+                        Icons.timelapse),
+                    const SizedBox(width: 24),
+                    _buildStatItem(
+                        context,
+                        "Avg Yesterday",
+                        formatAverageDuration(history.averageFeedDurationYesterday),
+                        Icons.timelapse),
+                    const SizedBox(width: 24),
+                    _buildStatItem(
+                        context,
+                        "Avg Last 7 Days",
+                        formatAverageDuration(history.averageFeedDurationLast7Days),
+                        Icons.timelapse),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Check totals against your own observations. Do not base medical or nutritional decisions solely on app data.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),
