@@ -108,8 +108,6 @@ class TermsOfUsePage extends StatelessWidget {
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Text('''
-++++++++++++++
-
 1. Acceptance & Eligibility
 
 By using this app, you agree to these terms. You represent that you are the legal guardian of the child whose data is being tracked.
