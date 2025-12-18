@@ -30,6 +30,16 @@ class SettingsPage extends StatelessWidget {
               );
             },
           ),
+          ListTile(
+            title: const Text('Safety & Accuracy'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const SafetyAndAccuracyPage()),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -48,29 +58,38 @@ class PrivacyPolicyPage extends StatelessWidget {
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Text('''
-1. Data Sovereignty
+1. Data Controller
 
-This app is built on the principle of local-first privacy. We do not operate servers to store your personal information. Every piece of data you create, input, or save stays exclusively on your device.
+The controller responsible for data processing is:
+[Your Name/Company Name]
+[Your Address in Switzerland]
 
-2. Zero Collection & Access
+2. Data Sovereignty & Sensitive Data
 
-*   No Personal Information: We do not collect, track, or request your name, email, location, or any other identifying data.
+This app tracks feeding, growth, and health-related information of infants. Under the Swiss Federal Act on Data Protection (nFADP), this is classified as Sensitive Personal Data.
 
-*   No Tracking: There are no third-party analytics, advertising SDKs, or trackers embedded in this app.
+*  Local Storage: All health-related data (feeding times, duration, baby photos) is stored exclusively on your device. We do not have access to this data.
 
-*   No Remote Access: We cannot see, access, or recover your data. If you delete the app or lose your device, your data is gone unless you have backed up your device via [e.g., iCloud/Google Drive].
+* Backups: If you use iCloud or Google Drive for device backups, your data is encrypted and stored by those providers according to their privacy policies.
 
-3. Third-Party Services
- 
-This app allows you to export your data and you are interacting with third-party services governed by their own privacy policies. We do not control and are not responsible for how those entities handle your data once it leaves your device.
+3. Data Processing for Subscriptions
 
-4. Data Security
+To provide the paid features (USD 10/month), we use Apple App Store / Google Play Store.
 
-Because your data is never transmitted to us, its security is entirely dependent on the security of your device. We recommend using standard device encryption and passcodes to protect your local information.
+* Transaction Data: We do not see your credit card details. We receive a "purchase token" and a unique identifier to verify your subscription status.
 
-5. Compliance with Law
+* Third-Party Processing: We may use service providers (e.g., RevenueCat) to manage subscriptions. These services process anonymized transaction IDs to ensure your access across devices.
 
-Since we possess zero user data, we have nothing to provide to law enforcement or government agencies, even if legally compelled. We cannot share what we do not have.
+4. Zero Tracking & Analytics
+
+* We do not use third-party marketing trackers or analytics that identify you.
+
+* We do not sell or share your data with third parties for advertising.
+
+5. Your Rights
+
+Under the nFADP, you have the right to access, correct, or delete your data. Since all health data is local, you exercise these rights by editing or deleting the information directly within the app or by uninstalling the app.
+
 '''),
       ),
     );
@@ -89,46 +108,65 @@ class TermsOfUsePage extends StatelessWidget {
       body: const SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Text('''
-1. Acceptance of Terms
+++++++++++++++
 
-By installing and using this app, you agree to be bound by these Terms of Use and all applicable laws. If you do not agree, you are prohibited from using the application and must uninstall it immediately.
+1. Acceptance & Eligibility
 
-2. Software License
+By using this app, you agree to these terms. You represent that you are the legal guardian of the child whose data is being tracked.
 
-We grant you a limited, non-exclusive, non-transferable license to use this software for [personal/commercial] use. You may not:
+2. Medical Disclaimer (IMPORTANT)
 
-*   Reverse engineer, decompile, or attempt to extract the source code of the app.
+NOT A MEDICAL DEVICE. This app is a tracking tool for informational purposes only. It does not provide medical advice, diagnosis, or treatment.
 
-*   Redistribute or "mirror" the software on any other server or platform.
+* Consult a Professional: Always seek the advice of a pediatrician or qualified health provider for any questions regarding a medical condition or the health/growth of your baby.
 
-*   Remove any copyright or proprietary notations from the software.
+* Emergency: Never delay seeking professional medical advice because of information generated by this app. In an emergency, call 144 (Switzerland) or your local emergency number.
 
-3. Absolute Data Responsibility (The "Zero-Server" Disclaimer)
+3. Subscription & Refunds
 
-You acknowledge that this app is a local-only application.
+* Price: The service is billed at USD 10/month (or equivalent in CHF).
 
-*   No Backups: We do not host servers, store your data, or maintain backups.
+* Management: Subscriptions are managed via your App Store/Google Play account.
 
-*   Loss of Access: If you delete the app, lose your device, or experience hardware failure, your data will be permanently lost.
+* Refunds: As a solo developer, all billing and refunds are handled exclusively by Apple/Google according to their terms.
 
-*   User Obligation: You are solely responsible for securing your own data via device-level backups (e.g., iCloud, Google Drive) or manual exports provided within the app.
+4. Absolute Data Responsibility
 
-4. Disclaimer of Warranty
+* Local Storage: You acknowledge that this app is "local-first." If you lose your device or delete the app without a system backup (iCloud/Google Drive), your data is permanently lost. We cannot recover it for you.
 
-The app is provided "AS IS" and "AS AVAILABLE." We disclaim all warranties, express or implied, including without limitation the warranties of merchantability, fitness for a particular purpose, and non-infringement. We do not warrant that the app will be error-free or that any errors will be corrected.
+* Security: You are responsible for securing your device (FaceID/Passcode) to prevent unauthorized access to the sensitive health data stored within the app.
 
-5. Limitation of Liability
+5. Limitation of Liability (Swiss Art. 100 OR)
 
-In no event shall we be liable for any damages (including, without limitation, damages for loss of data, loss of profit, or business interruption) arising out of the use or inability to use the app. This applies even if we have been notified of the possibility of such damage.
+* To the extent permitted by Swiss law, the Developer is not liable for damages resulting from app errors, data loss, or reliance on the app's statistics.
 
-6. Accuracy of Functionality
+* Liability Cap: The Developer’s maximum liability for any claim shall not exceed the total amount paid by you for the subscription in the 12 months preceding the claim.
 
-While we strive for technical accuracy, the software may contain technical, typographical, or logic errors. We do not warrant that any output of the app is accurate, complete, or current. We may make changes to the app at any time without notice but make no commitment to provide updates.
+* Exclusion: Liability for gross negligence or unlawful intent remains unaffected as per Art. 100 of the Swiss Code of Obligations.
 
-7. Governing Law
+6. Governing Law & Jurisdiction
 
-These terms are governed by the laws of Switzerland, and you irrevocably submit to the exclusive jurisdiction of the courts in that location.
+These terms are governed by Swiss Law. The exclusive place of jurisdiction for all disputes is Basel, Switzerland.
+
 '''),
+      ),
+    );
+  }
+}
+
+class SafetyAndAccuracyPage extends StatelessWidget {
+  const SafetyAndAccuracyPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Safety & Accuracy'),
+      ),
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: Text(
+            'Manual Data Verification: You must independently verify the accuracy of feeding entries and totals before making care decisions. Technology can fail; your parental judgment is the primary source of care.'),
       ),
     );
   }
