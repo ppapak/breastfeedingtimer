@@ -205,10 +205,21 @@ class _MyHomePageState extends State<MyHomePage> {
             IconButton(
               icon: const Icon(Icons.share),
               onPressed: () {
+                final historyText = history.activities
+                    .take(200)
+                    .map((activity) {
+                      if (activity is FeedSession) {
+                        return 'Feed at ${activity.startTime.toLocal()} for ${activity.duration.inMinutes} minutes on the ${activity.breastSide.toString().split('.').last} breast.';
+                      } else if (activity is SolidFeed) {
+                        return 'Solid food at ${activity.startTime.toLocal()}: ${activity.foodItem}.';
+                      }
+                      return '';
+                    })
+                    .join('\n');
+
                 final params = ShareParams(
-                  title: "Baby's Feeding Summary:\n",
-                  text: "Feeds in last 24h: ${history.feedsInLast24Hours}\n"
-                      "Total duration today: ${history.totalTodayDuration.inMinutes} minutes",
+                  title: "Baby's Feeding History",
+                  text: historyText,
                 );
 
                 SharePlus.instance.share(params);
