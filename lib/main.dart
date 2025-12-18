@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -142,7 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
     final babyProvider = Provider.of<BabyProvider>(context);
 
     if (_nameController.text != babyProvider.babyName) {
-      _nameController.text = babyProvider.babyName ?? '';
+      _nameController.text = babyProvider.babyName;
     }
 
     return GestureDetector(

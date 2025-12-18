@@ -1,44 +1,101 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'models.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'models.dart';
+
+enum Gender { unknown, boy, girl }
 
 class BabyProvider with ChangeNotifier {
-  String? _babyName;
-  String? _babyPhotoPath;
+  String _babyName = "baby name?";
+  Gender _gender = Gender.unknown;
+  File? _babyImage;
 
-  String? get babyName => _babyName;
-  String? get babyPhotoPath => _babyPhotoPath;
+  String get babyName => _babyName;
+  Gender get gender => _gender;
+  File? get babyImage => _babyImage;
+
+  static const _nameKey = 'baby_name';
+  static const _genderKey = 'baby_gender';
+  static const _imagePathKey = 'baby_image_path';
 
   BabyProvider() {
     loadBabyInfo();
   }
 
-  Future<void> updateBabyName(String name) async {
-    _babyName = name;
+  Future<void> loadBabyInfo() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('babyName', name);
+    _babyName = prefs.getString(_nameKey) ?? "baby name?";
+    final genderString = prefs.getString(_genderKey);
+    if (genderString != null) {
+      _gender = Gender.values
+          .firstWhere((g) => g.toString() == genderString, orElse: () => Gender.unknown);
+    } else {
+      _gender = Gender.unknown;
+    }
+    final imagePath = prefs.getString(_imagePathKey);
+    if (imagePath != null) {
+      _babyImage = File(imagePath);
+    }
     notifyListeners();
   }
 
-  Future<void> pickBabyPhoto() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      _babyPhotoPath = pickedFile.path;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('babyPhotoPath', _babyPhotoPath!);
-      notifyListeners();
+  Future<void> saveBabyInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_nameKey, _babyName);
+    await prefs.setString(_genderKey, _gender.toString());
+    if (_babyImage != null) {
+      await prefs.setString(_imagePathKey, _babyImage!.path);
     }
   }
 
-  Future<void> loadBabyInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    _babyName = prefs.getString('babyName');
-    _babyPhotoPath = prefs.getString('babyPhotoPath');
+  void setBabyName(String newName) {
+    if (newName.trim().isEmpty) {
+      _babyName = "baby name?";
+    } else {
+      _babyName = newName;
+    }
+    saveBabyInfo();
     notifyListeners();
+  }
+
+  void updateBabyName(String name) {
+    if (name.trim().isEmpty) {
+      _babyName = "baby name?";
+    } else {
+      _babyName = name;
+    }
+    saveBabyInfo();
+    notifyListeners();
+  }
+
+  void toggleGender() {
+    if (_gender == Gender.girl) {
+      _gender = Gender.boy;
+    } else {
+      _gender = Gender.girl;
+    }
+    saveBabyInfo();
+    notifyListeners();
+  }
+
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName = path.basename(pickedFile.path);
+      final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
+      _babyImage = savedImage;
+      saveBabyInfo();
+      notifyListeners();
+    }
   }
 }
 
@@ -52,8 +109,7 @@ class ThemeProvider with ChangeNotifier {
   }
 
   void toggleTheme() {
-    _themeMode =
-        _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     _saveTheme();
     notifyListeners();
   }
@@ -73,9 +129,8 @@ class ThemeProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final themeString = prefs.getString('themeMode');
     if (themeString != null) {
-      _themeMode = ThemeMode.values.firstWhere(
-          (e) => e.toString() == themeString,
-          orElse: () => ThemeMode.system);
+      _themeMode = ThemeMode.values
+          .firstWhere((e) => e.toString() == themeString, orElse: () => ThemeMode.system);
     }
     notifyListeners();
   }
@@ -156,8 +211,7 @@ class HistoryModel with ChangeNotifier {
 
   Future<void> saveHistory() async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> activityJson =
-        _activities.map((a) => jsonEncode(a.toJson())).toList();
+    final List<String> activityJson = _activities.map((a) => jsonEncode(a.toJson())).toList();
     await prefs.setStringList('history', activityJson);
   }
 
@@ -200,15 +254,13 @@ class HistoryModel with ChangeNotifier {
 
   int get feedsInLast24Hours {
     final now = DateTime.now();
-    return _activities
-        .where((s) => now.difference(s.startTime).inHours < 24)
-        .length;
+    return _activities.where((s) => now.difference(s.startTime).inHours < 24).length;
   }
 
   Duration get totalTodayDuration {
     final now = DateTime.now();
-    final todayActivities = _activities.whereType<FeedSession>().where((s) =>
-        now.difference(s.startTime).inHours < 24 && s.startTime.day == now.day);
+    final todayActivities =
+        _activities.whereType<FeedSession>().where((s) => now.difference(s.startTime).inHours < 24 && s.startTime.day == now.day);
     if (todayActivities.isEmpty) return Duration.zero;
     return todayActivities.map((s) => s.duration).reduce((a, b) => a + b);
   }
@@ -217,13 +269,10 @@ class HistoryModel with ChangeNotifier {
     final now = DateTime.now();
     final todayFeeds = _activities
         .whereType<FeedSession>()
-        .where((s) =>
-            now.difference(s.startTime).inHours < 24 &&
-            s.startTime.day == now.day)
+        .where((s) => now.difference(s.startTime).inHours < 24 && s.startTime.day == now.day)
         .toList();
     if (todayFeeds.isEmpty) return Duration.zero;
-    return todayFeeds.map((s) => s.duration).reduce((a, b) => a + b) ~/
-        todayFeeds.length;
+    return todayFeeds.map((s) => s.duration).reduce((a, b) => a + b) ~/ todayFeeds.length;
   }
 
   Duration get averageFeedDurationYesterday {
@@ -237,27 +286,21 @@ class HistoryModel with ChangeNotifier {
             s.startTime.year == yesterday.year)
         .toList();
     if (yesterdayFeeds.isEmpty) return Duration.zero;
-    return yesterdayFeeds.map((s) => s.duration).reduce((a, b) => a + b) ~/
-        yesterdayFeeds.length;
+    return yesterdayFeeds.map((s) => s.duration).reduce((a, b) => a + b) ~/ yesterdayFeeds.length;
   }
 
   Duration get averageFeedDurationLast7Days {
     final now = DateTime.now();
-    final last7DaysFeeds = _activities
-        .whereType<FeedSession>()
-        .where((s) => now.difference(s.startTime).inDays < 7)
-        .toList();
+    final last7DaysFeeds = _activities.whereType<FeedSession>().where((s) => now.difference(s.startTime).inDays < 7).toList();
     if (last7DaysFeeds.isEmpty) return Duration.zero;
-    return last7DaysFeeds.map((s) => s.duration).reduce((a, b) => a + b) ~/
-        last7DaysFeeds.length;
+    return last7DaysFeeds.map((s) => s.duration).reduce((a, b) => a + b) ~/ last7DaysFeeds.length;
   }
 
   Duration totalDurationForSide(BreastSide side) {
     final now = DateTime.now();
-    final todayActivities = _activities.whereType<FeedSession>().where((s) =>
-        now.difference(s.startTime).inHours < 24 &&
-        s.startTime.day == now.day &&
-        s.breastSide == side);
+    final todayActivities = _activities
+        .whereType<FeedSession>()
+        .where((s) => now.difference(s.startTime).inHours < 24 && s.startTime.day == now.day && s.breastSide == side);
     if (todayActivities.isEmpty) return Duration.zero;
     return todayActivities.map((s) => s.duration).reduce((a, b) => a + b);
   }
