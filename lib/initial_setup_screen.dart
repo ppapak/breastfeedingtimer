@@ -52,14 +52,14 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: _hasAgreed
-                      ? () {
+                      ? () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
                             final babyProvider = context.read<BabyProvider>();
                             final setupProvider =
                                 context.read<SetupProvider>();
-                            babyProvider.setBabyName(_babyName);
-                            setupProvider.completeSetup();
+                            await babyProvider.setBabyName(_babyName);
+                            await setupProvider.completeSetup();
                           }
                         }
                       : null,

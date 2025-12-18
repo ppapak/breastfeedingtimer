@@ -57,13 +57,13 @@ class BabyProvider with ChangeNotifier {
     }
   }
 
-  void setBabyName(String newName) {
+  Future<void> setBabyName(String newName) async {
     if (newName.trim().isEmpty) {
       _babyName = "baby name?";
     } else {
       _babyName = newName;
     }
-    saveBabyInfo();
+    await saveBabyInfo();
     notifyListeners();
   }
 
