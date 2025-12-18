@@ -154,20 +154,20 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Row(
             children: [
               GestureDetector(
-                onTap: () => babyProvider.pickBabyPhoto(),
+                onTap: () => babyProvider.pickImage(),
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     CircleAvatar(
                       radius: 20,
-                      backgroundColor: babyProvider.babyPhotoPath == null
+                      backgroundColor: babyProvider.babyImage == null
                           ? Theme.of(context).colorScheme.surfaceContainerHighest
                           : Colors.transparent,
-                      backgroundImage: babyProvider.babyPhotoPath != null
-                          ? FileImage(File(babyProvider.babyPhotoPath!))
+                      backgroundImage: babyProvider.babyImage != null
+                          ? FileImage(babyProvider.babyImage!)
                           : null,
                     ),
-                    if (babyProvider.babyPhotoPath == null)
+                    if (babyProvider.babyImage == null)
                       const Icon(Icons.add_a_photo, size: 20),
                   ],
                 ),

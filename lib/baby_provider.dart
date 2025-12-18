@@ -3,11 +3,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path/path.dart' as path;
+
 
 enum Gender { unknown, boy, girl }
 
-class BabyModel with ChangeNotifier {
+class BabyProvider with ChangeNotifier {
   String _babyName = "baby name?";
   Gender _gender = Gender.unknown;
   File? _babyImage;
@@ -20,7 +23,7 @@ class BabyModel with ChangeNotifier {
   static const _genderKey = 'baby_gender';
   static const _imagePathKey = 'baby_image_path';
 
-  BabyModel() {
+  BabyProvider() {
     loadBabyInfo();
   }
 
@@ -59,6 +62,17 @@ class BabyModel with ChangeNotifier {
     notifyListeners();
   }
 
+    void updateBabyName(String name) {
+    if (name.trim().isEmpty) {
+      _babyName = "baby name?";
+    } else {
+      _babyName = name;
+    }
+    saveBabyInfo();
+    notifyListeners();
+  }
+
+
   void toggleGender() {
     if (_gender == Gender.girl) {
       _gender = Gender.boy;
@@ -73,7 +87,10 @@ class BabyModel with ChangeNotifier {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      _babyImage = File(pickedFile.path);
+      final appDir = await getApplicationDocumentsDirectory();
+      final fileName = path.basename(pickedFile.path);
+      final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
+      _babyImage = savedImage;
       saveBabyInfo();
       notifyListeners();
     }
