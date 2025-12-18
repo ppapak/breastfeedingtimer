@@ -211,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       if (activity is FeedSession) {
                         return 'Feed at ${activity.startTime.toLocal()} for ${activity.duration.inMinutes} minutes on the ${activity.breastSide.toString().split('.').last} breast.';
                       } else if (activity is SolidFeed) {
-                        return 'Solid food at ${activity.startTime.toLocal()}: ${activity.foodItem}.';
+                        return 'Solid food at ${activity.startTime.toLocal()}: ${activity.food}.';
                       }
                       return '';
                     })
