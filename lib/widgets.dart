@@ -32,7 +32,7 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
     _timeOfDay = TimeOfDay.fromDateTime(_startTime);
     _activityType = ActivityType.feed;
     _food = 'Formula';
-    _amount = 0;
+    _amount = 40;
     _unit = 'grams';
   }
 
@@ -272,24 +272,8 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
       Row(
         children: [
           Expanded(
-            child: TextFormField(
-              initialValue: _amount.toString(),
-              decoration: const InputDecoration(labelText: 'Amount'),
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                setState(() {
-                  _amount = int.tryParse(value) ?? 0;
-                });
-              },
-              validator: (value) {
-                if (value == null || int.tryParse(value) == null) {
-                  return 'Please enter a valid amount';
-                }
-                return null;
-              },
-            ),
+            child: Text('Amount: $_amount'),
           ),
-          const SizedBox(width: 16),
           DropdownButton<String>(
             value: _unit,
             items: <String>['grams', 'oz'].map((String value) {
@@ -305,6 +289,18 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
             },
           ),
         ],
+      ),
+      Slider(
+        value: _amount.toDouble(),
+        min: 0,
+        max: 500,
+        divisions: 100,
+        label: _amount.toString(),
+        onChanged: (value) {
+          setState(() {
+            _amount = (value / 5).round() * 5;
+          });
+        },
       ),
     ];
   }
