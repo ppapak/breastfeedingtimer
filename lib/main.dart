@@ -154,7 +154,36 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Row(
             children: [
               GestureDetector(
-                onTap: () => babyProvider.pickImage(),
+                onTap: () {
+                  if (babyProvider.babyImage == null) {
+                    babyProvider.pickImage();
+                  } else {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ListTile(
+                            leading: const Icon(Icons.edit),
+                            title: const Text('Change Photo'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              babyProvider.pickImage();
+                            },
+                          ),
+                          ListTile(
+                            leading: const Icon(Icons.delete),
+                            title: const Text('Delete Photo'),
+                            onTap: () {
+                              Navigator.pop(context);
+                              babyProvider.deleteImage();
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
                 child: Stack(
                   alignment: Alignment.center,
                   children: [

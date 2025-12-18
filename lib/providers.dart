@@ -52,6 +52,8 @@ class BabyProvider with ChangeNotifier {
     await prefs.setString(_genderKey, _gender.toString());
     if (_babyImage != null) {
       await prefs.setString(_imagePathKey, _babyImage!.path);
+    } else {
+      await prefs.remove(_imagePathKey);
     }
   }
 
@@ -90,9 +92,22 @@ class BabyProvider with ChangeNotifier {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final appDir = await getApplicationDocumentsDirectory();
-      final fileName = path.basename(pickedFile.path);
-      final savedImage = await File(pickedFile.path).copy('${appDir.path}/$fileName');
+      const fileName = 'baby_profile_image.jpg';
+      final savedImage = await File(pickedFile.path).copy(path.join(appDir.path, fileName));
       _babyImage = savedImage;
+      saveBabyInfo();
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteImage() async {
+    if (_babyImage != null) {
+      try {
+        await _babyImage!.delete();
+      } catch (e) {
+        // Ignore errors if file doesn't exist
+      }
+      _babyImage = null;
       saveBabyInfo();
       notifyListeners();
     }

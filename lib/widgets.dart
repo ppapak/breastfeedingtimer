@@ -181,7 +181,8 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
                   ? Theme.of(context).colorScheme.onPrimary
                   : Theme.of(context).colorScheme.onSurface,
             ),
-            child: const Text('L', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            child: const Text('L',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -199,7 +200,8 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
                   ? Theme.of(context).colorScheme.onSecondary
                   : Theme.of(context).colorScheme.onSurface,
             ),
-            child: const Text('R', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            child: const Text('R',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -323,11 +325,13 @@ class HistoryList extends StatelessWidget {
               backgroundColor: Theme.of(context).colorScheme.primary,
               child: Text(
                 activity.breastSide == BreastSide.left ? 'L' : 'R',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
             title: Text('${activity.duration.inMinutes} min feed'),
-            subtitle: Text(DateFormat.yMd().add_jm().format(activity.startTime)),
+            subtitle:
+                Text(DateFormat.yMd().add_jm().format(activity.startTime)),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -346,8 +350,10 @@ class HistoryList extends StatelessWidget {
             leading: const CircleAvatar(
               child: Icon(Icons.restaurant),
             ),
-            title: Text('${activity.food} (${activity.amount}${activity.unit})'),
-            subtitle: Text(DateFormat.yMd().add_jm().format(activity.startTime)),
+            title:
+                Text('${activity.food} (${activity.amount}${activity.unit})'),
+            subtitle:
+                Text(DateFormat.yMd().add_jm().format(activity.startTime)),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -428,14 +434,20 @@ class _StatsPanelState extends State<StatsPanel> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildStatItem(context, "Last Feed",
-                        formatTimeSince(history.timeSinceLastFeed), Icons.history),
+                    _buildStatItem(
+                        context,
+                        "Last Feed",
+                        formatTimeSince(history.timeSinceLastFeed),
+                        Icons.history),
                     const SizedBox(width: 24),
                     _buildStatItem(context, "Feeds/24h",
                         "${history.feedsInLast24Hours}", Icons.restaurant_menu),
                     const SizedBox(width: 24),
-                    _buildStatItem(context, "Total Today",
-                        "${history.totalTodayDuration.inMinutes}m", Icons.timer),
+                    _buildStatItem(
+                        context,
+                        "Total Today",
+                        "${history.totalTodayDuration.inMinutes}m",
+                        Icons.timer),
                     const SizedBox(width: 24),
                     _buildStatItem(
                         context,
@@ -446,21 +458,26 @@ class _StatsPanelState extends State<StatsPanel> {
                     _buildStatItem(
                         context,
                         "Avg Yesterday",
-                        formatAverageDuration(history.averageFeedDurationYesterday),
+                        formatAverageDuration(
+                            history.averageFeedDurationYesterday),
                         Icons.timelapse),
                     const SizedBox(width: 24),
                     _buildStatItem(
                         context,
                         "Avg Last 7 Days",
-                        formatAverageDuration(history.averageFeedDurationLast7Days),
+                        formatAverageDuration(
+                            history.averageFeedDurationLast7Days),
                         Icons.timelapse),
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 'Check totals against your own observations. Do not base medical or nutritional decisions solely on app data.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(fontStyle: FontStyle.normal),
                 textAlign: TextAlign.center,
               ),
             ],
