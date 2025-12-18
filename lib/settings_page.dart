@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'providers.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -40,6 +43,73 @@ class SettingsPage extends StatelessWidget {
               );
             },
           ),
+          const Divider(),
+          ListTile(
+            title: const Text('Clear All Data'),
+            onTap: () async {
+              final history = context.read<HistoryModel>();
+              final setup = context.read<SetupProvider>();
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Clear All Data?'),
+                  content: const Text(
+                      'This will permanently delete all feeding history and reset the app.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Clear'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmed == true) {
+                await history.clearHistory();
+                await setup.resetSetup();
+                if (context.mounted) {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                }
+              }
+            },
+          ),
+          const Divider(),
+          const AcceptanceHistory(),
+        ],
+      ),
+    );
+  }
+}
+
+class AcceptanceHistory extends StatelessWidget {
+  const AcceptanceHistory({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final setupProvider = Provider.of<SetupProvider>(context);
+
+    if (setupProvider.acceptanceDates.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Disclaimer Acceptance History',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          ...setupProvider.acceptanceDates.map((dateString) {
+            final date = DateTime.parse(dateString);
+            final formattedDate = DateFormat.yMd().add_jm().format(date);
+            return Text('\u2022 Accepted on $formattedDate');
+          }),
         ],
       ),
     );

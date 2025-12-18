@@ -248,6 +248,12 @@ class HistoryModel with ChangeNotifier {
     }
   }
 
+  Future<void> clearHistory() async {
+    _activities = [];
+    saveHistory();
+    notifyListeners();
+  }
+
   DateTime? get lastFeedTime {
     if (_activities.isEmpty) {
       return null;
@@ -318,5 +324,43 @@ class HistoryModel with ChangeNotifier {
         .where((s) => now.difference(s.startTime).inHours < 24 && s.startTime.day == now.day && s.breastSide == side);
     if (todayActivities.isEmpty) return Duration.zero;
     return todayActivities.map((s) => s.duration).reduce((a, b) => a + b);
+  }
+}
+
+class SetupProvider with ChangeNotifier {
+  bool _isSetupComplete = false;
+  List<String> _acceptanceDates = [];
+
+  static const _setupCompleteKey = 'setup_complete';
+  static const _acceptanceDatesKey = 'acceptance_dates';
+
+  bool get isSetupComplete => _isSetupComplete;
+  List<String> get acceptanceDates => _acceptanceDates;
+
+  SetupProvider() {
+    loadSetupInfo();
+  }
+
+  Future<void> loadSetupInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isSetupComplete = prefs.getBool(_setupCompleteKey) ?? false;
+    _acceptanceDates = prefs.getStringList(_acceptanceDatesKey) ?? [];
+    notifyListeners();
+  }
+
+  Future<void> completeSetup() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isSetupComplete = true;
+    _acceptanceDates.add(DateTime.now().toIso8601String());
+    await prefs.setBool(_setupCompleteKey, true);
+    await prefs.setStringList(_acceptanceDatesKey, _acceptanceDates);
+    notifyListeners();
+  }
+
+  Future<void> resetSetup() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isSetupComplete = false;
+    await prefs.setBool(_setupCompleteKey, false);
+    notifyListeners();
   }
 }

@@ -7,6 +7,7 @@ import 'models.dart';
 import 'providers.dart';
 import 'widgets.dart';
 import 'settings_page.dart';
+import 'initial_setup_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => TimerModel()),
         ChangeNotifierProvider(create: (context) => HistoryModel()),
+        ChangeNotifierProvider(create: (context) => SetupProvider()),
       ],
       child: const MyApp(),
     ),
@@ -88,14 +90,18 @@ class MyApp extends StatelessWidget {
       ),
     );
 
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return Consumer2<ThemeProvider, SetupProvider>(
+      builder: (context, themeProvider, setupProvider, child) {
+        final history = context.watch<HistoryModel>();
+        final showSetupScreen =
+            !setupProvider.isSetupComplete || history.activities.isEmpty;
+
         return MaterialApp(
           title: 'Flutter Material AI App',
           theme: lightTheme,
           darkTheme: darkTheme,
           themeMode: themeProvider.themeMode,
-          home: const MyHomePage(),
+          home: showSetupScreen ? const InitialSetupScreen() : const MyHomePage(),
         );
       },
     );
