@@ -20,7 +20,8 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
   late BreastSide _breastSide;
   late ActivityType _activityType;
   late String _food;
-  late int _grams;
+  late int _amount;
+  late String _unit;
 
   @override
   void initState() {
@@ -31,7 +32,8 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
     _timeOfDay = TimeOfDay.fromDateTime(_startTime);
     _activityType = ActivityType.feed;
     _food = 'Formula';
-    _grams = 0;
+    _amount = 0;
+    _unit = 'grams';
   }
 
   @override
@@ -84,7 +86,8 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
                 final newSolidFeed = SolidFeed(
                   startTime: _startTime,
                   food: _food,
-                  grams: _grams,
+                  amount: _amount,
+                  unit: _unit,
                 );
                 history.addActivity(newSolidFeed);
               }
@@ -252,7 +255,7 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
       ),
       TextFormField(
         initialValue: _food,
-        decoration: const InputDecoration(labelText: 'Formula'),
+        decoration: const InputDecoration(labelText: 'Food'),
         onChanged: (value) {
           setState(() {
             _food = value;
@@ -266,18 +269,42 @@ class _ManualEntryDialogState extends State<ManualEntryDialog> {
         },
       ),
       const SizedBox(height: 16),
-      Text('Grams: $_grams'),
-      Slider(
-        value: _grams.toDouble(),
-        min: 0,
-        max: 500,
-        divisions: 50,
-        label: '$_grams g',
-        onChanged: (value) {
-          setState(() {
-            _grams = value.toInt();
-          });
-        },
+      Row(
+        children: [
+          Expanded(
+            child: TextFormField(
+              initialValue: _amount.toString(),
+              decoration: const InputDecoration(labelText: 'Amount'),
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                setState(() {
+                  _amount = int.tryParse(value) ?? 0;
+                });
+              },
+              validator: (value) {
+                if (value == null || int.tryParse(value) == null) {
+                  return 'Please enter a valid amount';
+                }
+                return null;
+              },
+            ),
+          ),
+          const SizedBox(width: 16),
+          DropdownButton<String>(
+            value: _unit,
+            items: <String>['grams', 'oz'].map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                _unit = newValue!;
+              });
+            },
+          ),
+        ],
       ),
     ];
   }
@@ -323,7 +350,7 @@ class HistoryList extends StatelessWidget {
             leading: const CircleAvatar(
               child: Icon(Icons.restaurant),
             ),
-            title: Text('${activity.food} (${activity.grams}g)'),
+            title: Text('${activity.food} (${activity.amount}${activity.unit})'),
             subtitle: Text(DateFormat.yMd().add_jm().format(activity.startTime)),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,

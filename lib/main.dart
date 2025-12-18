@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:intl/intl.dart';
 import 'models.dart';
 import 'providers.dart';
 import 'widgets.dart';
@@ -207,10 +208,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 final historyText = history.activities
                     .take(200)
                     .map((activity) {
+                      final timeFormat = DateFormat('yyyy-MM-dd at HH:mm');
                       if (activity is FeedSession) {
-                        return 'Feed at ${activity.startTime.toLocal()} for ${activity.duration.inMinutes} minutes on the ${activity.breastSide.toString().split('.').last} breast.';
+                        final duration = activity.duration;
+                        final minutes = duration.inMinutes;
+                        final seconds = duration.inSeconds % 60;
+                        final breast = activity.breastSide.toString().split('.').last;
+                        return '${timeFormat.format(activity.startTime.toLocal())}, for ${minutes}m ${seconds}s on $breast Breast';
                       } else if (activity is SolidFeed) {
-                        return 'Solid food at ${activity.startTime.toLocal()}: ${activity.food}.';
+                        return '${timeFormat.format(activity.startTime.toLocal())}, for ${activity.amount}${activity.unit} with ${activity.food}';
                       }
                       return '';
                     })
