@@ -92,16 +92,14 @@ class MyApp extends StatelessWidget {
 
     return Consumer2<ThemeProvider, SetupProvider>(
       builder: (context, themeProvider, setupProvider, child) {
-        final history = context.watch<HistoryModel>();
-        final showSetupScreen =
-            !setupProvider.isSetupComplete || history.activities.isEmpty;
-
         return MaterialApp(
           title: 'Flutter Material AI App',
           theme: lightTheme,
           darkTheme: darkTheme,
           themeMode: themeProvider.themeMode,
-          home: showSetupScreen ? const InitialSetupScreen() : const MyHomePage(),
+          home: setupProvider.isSetupComplete
+              ? const MyHomePage()
+              : const InitialSetupScreen(),
         );
       },
     );
