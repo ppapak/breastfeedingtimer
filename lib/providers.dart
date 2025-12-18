@@ -112,6 +112,16 @@ class BabyProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> clearAllData() async {
+    _babyName = "baby name?";
+    _gender = Gender.unknown;
+    await deleteImage();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_nameKey);
+    await prefs.remove(_genderKey);
+    notifyListeners();
+  }
 }
 
 class ThemeProvider with ChangeNotifier {

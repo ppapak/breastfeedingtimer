@@ -47,6 +47,7 @@ class SettingsPage extends StatelessWidget {
           ListTile(
             title: const Text('Clear All Data'),
             onTap: () async {
+              final babyProvider = context.read<BabyProvider>();
               final history = context.read<HistoryModel>();
               final setup = context.read<SetupProvider>();
               final confirmed = await showDialog<bool>(
@@ -54,7 +55,7 @@ class SettingsPage extends StatelessWidget {
                 builder: (context) => AlertDialog(
                   title: const Text('Clear All Data?'),
                   content: const Text(
-                      'This will permanently delete all feeding history and reset the app.'),
+                      'This will permanently delete all feeding history, baby name, photo and reset the app.'),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
@@ -68,6 +69,7 @@ class SettingsPage extends StatelessWidget {
                 ),
               );
               if (confirmed == true) {
+                await babyProvider.clearAllData();
                 await history.clearHistory();
                 await setup.resetSetup();
                 if (context.mounted) {
