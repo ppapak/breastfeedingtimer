@@ -246,7 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 final historyText = history.activities
                     .take(200)
                     .map((activity) {
-                      final timeFormat = DateFormat('yyyy-MM-dd at HH:mm');
+                      final timeFormat = DateFormat('yyyy-MM-dd HH:mm');
                       if (activity is FeedSession) {
                         final duration = activity.duration;
                         final minutes = duration.inMinutes;
