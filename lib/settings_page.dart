@@ -103,7 +103,7 @@ class AcceptanceHistory extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Disclaimer Acceptance History',
+            'Disclaimer Acceptance Dates',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),

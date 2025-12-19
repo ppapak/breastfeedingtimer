@@ -40,23 +40,26 @@ class MyApp extends StatelessWidget {
       bodyMedium: GoogleFonts.roboto(fontSize: 14),
     );
 
+    final ColorScheme lightColorScheme = ColorScheme.fromSeed(
+      seedColor: primarySeedColor,
+      brightness: Brightness.light,
+    );
+
     final ThemeData lightTheme = ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
-        brightness: Brightness.light,
-      ),
+      colorScheme: lightColorScheme,
+      scaffoldBackgroundColor: Colors.grey.shade200,
       textTheme: appTextTheme,
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        foregroundColor: lightColorScheme.onSurface,
         elevation: 0,
-        titleTextStyle: GoogleFonts.roboto(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
+        titleTextStyle: GoogleFonts.roboto(fontSize: 24, fontWeight: FontWeight.bold, color: lightColorScheme.onSurface),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: lightColorScheme.onPrimary,
+          backgroundColor: lightColorScheme.primary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           textStyle:
@@ -65,23 +68,25 @@ class MyApp extends StatelessWidget {
       ),
     );
 
+    final ColorScheme darkColorScheme = ColorScheme.fromSeed(
+      seedColor: primarySeedColor,
+      brightness: Brightness.dark,
+    );
+
     final ThemeData darkTheme = ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
-        brightness: Brightness.dark,
-      ),
+      colorScheme: darkColorScheme,
       textTheme: appTextTheme,
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.grey[900],
-        foregroundColor: Colors.white,
+        backgroundColor: darkColorScheme.surface,
+        foregroundColor: darkColorScheme.onSurface,
         titleTextStyle:
             GoogleFonts.roboto(fontSize: 24, fontWeight: FontWeight.bold),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.black,
-          backgroundColor: Colors.deepPurple.shade200,
+          foregroundColor: darkColorScheme.onPrimary,
+          backgroundColor: darkColorScheme.primary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           textStyle:
@@ -353,9 +358,7 @@ class TimerSection extends StatelessWidget {
                 .surfaceContainerHighest
                 .withAlpha(128),
             valueColor: AlwaysStoppedAnimation<Color>(
-              side == BreastSide.left
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.secondary,
+              Theme.of(context).colorScheme.primary,
             ),
           ),
           Center(
@@ -383,7 +386,7 @@ class TimerSection extends StatelessWidget {
                     : Theme.of(context).colorScheme.surface,
                 foregroundColor: isSelected
                     ? Theme.of(context).colorScheme.onTertiary
-                    : Theme.of(context).colorScheme.onSurface,
+                    : Theme.of(context).colorScheme.primary,
                 elevation: 8,
               ),
               child: isSelected
