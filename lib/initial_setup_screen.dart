@@ -11,8 +11,21 @@ class InitialSetupScreen extends StatefulWidget {
 
 class _InitialSetupScreenState extends State<InitialSetupScreen> {
   final _formKey = GlobalKey<FormState>();
-  String _babyName = '';
+  late TextEditingController _nameController;
   bool _hasAgreed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final babyProvider = Provider.of<BabyProvider>(context, listen: false);
+    _nameController = TextEditingController(text: babyProvider.babyName == "baby name?" ? "" : babyProvider.babyName);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,15 +39,13 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextFormField(
+                  controller: _nameController,
                   decoration: const InputDecoration(labelText: 'Baby\'s Name'),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your baby\'s name';
                     }
                     return null;
-                  },
-                  onSaved: (value) {
-                    _babyName = value!;
                   },
                 ),
                 const SizedBox(height: 20),
@@ -58,7 +69,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
                             final babyProvider = context.read<BabyProvider>();
                             final setupProvider =
                                 context.read<SetupProvider>();
-                            await babyProvider.setBabyName(_babyName);
+                            await babyProvider.setBabyName(_nameController.text);
                             await setupProvider.completeSetup();
                           }
                         }
